@@ -1,0 +1,1287 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Show lumière</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='14' r='9' fill='%23ffb000'/%3E%3Crect x='12' y='24' width='8' height='5' rx='1.5' fill='%23888'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #0d0f14;
+  --panel: #151922;
+  --panel-2: #1c2130;
+  --line: #272e40;
+  --text: #e9ecf3;
+  --muted: #8a93a8;
+  --accent: #ffb000;
+  --accent-ink: #1a1200;
+  --danger: #ff5d5d;
+  --ok: #3ddc84;
+  --warn: #ffcc4d;
+  --radius: 12px;
+  --shadow: 0 8px 30px rgba(0,0,0,.35);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+.hidden { display: none !important; }
+
+/* ---------- en-tête ---------- */
+header { position: sticky; top: 0; z-index: 20; background: rgba(13,15,20,.92); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.bar { max-width: 1200px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.brand { font-weight: 700; font-size: 18px; letter-spacing: .2px; display: flex; align-items: center; gap: 8px; }
+.brand .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+.pill { font-size: 13px; padding: 4px 10px; border-radius: 999px; background: var(--panel-2); color: var(--muted); border: 1px solid var(--line); white-space: nowrap; }
+.pill.ok { color: var(--ok); }
+.pill.err { color: var(--danger); }
+.spacer { flex: 1; }
+.tabs { display: flex; gap: 4px; background: var(--panel); padding: 4px; border-radius: 10px; border: 1px solid var(--line); }
+.tabs button { background: none; border: 0; padding: 6px 14px; border-radius: 7px; color: var(--muted); }
+.tabs button.on { background: var(--panel-2); color: var(--text); }
+
+.btn { background: var(--panel-2); border: 1px solid var(--line); padding: 7px 12px; border-radius: 9px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.btn:hover { border-color: #3a4460; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+.btn.danger { color: var(--danger); }
+.btn.ghost { background: none; }
+.btn.small { padding: 4px 8px; font-size: 13px; border-radius: 7px; }
+.btn:disabled { opacity: .45; cursor: default; }
+.iconbtn { background: none; border: 1px solid transparent; color: var(--muted); width: 30px; height: 30px; border-radius: 7px; display: inline-grid; place-items: center; }
+.iconbtn:hover { background: var(--panel-2); color: var(--text); border-color: var(--line); }
+.iconbtn svg, .btn svg { width: 16px; height: 16px; }
+
+/* ---------- scène (aperçu des lampes) ---------- */
+.stage { max-width: 1200px; margin: 0 auto; padding: 18px 16px 8px; }
+.bulbs { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-start; min-height: 86px; }
+.bulb { width: 74px; text-align: center; cursor: pointer; user-select: none; }
+.bulb .glass { width: 46px; height: 46px; margin: 0 auto 6px; border-radius: 50%; background: #262b37; border: 2px solid #323a4d; transition: background-color .4s, box-shadow .4s, opacity .4s; }
+.bulb .name { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bulb.blink .glass { animation: blink .35s 6 alternate; }
+@keyframes blink { to { transform: scale(1.25); } }
+.empty-stage { color: var(--muted); font-size: 14px; padding: 10px 0; }
+
+main { max-width: 1200px; margin: 0 auto; padding: 8px 16px 80px; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+h2 { font-size: 16px; margin: 0 0 10px; }
+h3 { font-size: 14px; margin: 0 0 8px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .6px; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+
+/* ---------- onglet shows ---------- */
+.shows-layout { display: grid; grid-template-columns: 240px 1fr; gap: 16px; align-items: start; }
+.show-list { padding: 10px; position: sticky; top: 76px; }
+.show-list .item { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 10px; border-radius: 8px; cursor: pointer; }
+.show-list .item:hover { background: var(--panel-2); }
+.show-list .item.on { background: var(--panel-2); outline: 1px solid var(--line); }
+.show-list .item .playing { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+.show-list .actions { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+
+.editor-head { padding: 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.name-input { background: transparent; border: 1px solid transparent; font-size: 20px; font-weight: 700; padding: 4px 8px; border-radius: 8px; min-width: 0; flex: 4 1 260px; }
+.name-input:hover, .name-input:focus { border-color: var(--line); outline: none; background: var(--panel-2); }
+.field { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+select, .num { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
+.num { width: 64px; text-align: right; }
+.toggle { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: var(--muted); }
+.toggle input { display: none; }
+.toggle .sw { width: 34px; height: 20px; border-radius: 999px; background: #323a4d; position: relative; transition: .2s; }
+.toggle .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: .2s; }
+.toggle input:checked + .sw { background: var(--accent); }
+.toggle input:checked + .sw::after { left: 17px; }
+
+.timeline { display: flex; height: 34px; margin: 0 14px 14px; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); cursor: pointer; }
+.timeline .blk { position: relative; min-width: 6px; border-right: 1px solid rgba(0,0,0,.45); }
+.timeline .blk.cur { outline: 2px solid #fff; outline-offset: -2px; z-index: 1; }
+.timeline .blk .prog { position: absolute; left: 0; bottom: 0; height: 4px; background: #fff; width: 0; }
+.timeline-info { display: flex; justify-content: space-between; margin: -8px 14px 12px; font-size: 12px; color: var(--muted); }
+
+.steps { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+.step { padding: 12px 14px 14px; border-left: 4px solid transparent; }
+.step.cur { border-left-color: var(--ok); }
+.step-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.step-num { width: 26px; height: 26px; border-radius: 7px; background: var(--panel-2); display: grid; place-items: center; font-size: 13px; font-weight: 700; color: var(--muted); flex: none; }
+.step-name { background: transparent; border: 1px solid transparent; font-weight: 600; padding: 4px 6px; border-radius: 7px; flex: 1; min-width: 120px; }
+.step-name:hover, .step-name:focus { border-color: var(--line); background: var(--panel-2); outline: none; }
+.step-tools { display: flex; gap: 2px; }
+.seg { display: inline-flex; background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px; padding: 3px; margin: 12px 0 10px; flex-wrap: wrap; }
+.seg button { border: 0; background: none; padding: 5px 12px; border-radius: 6px; color: var(--muted); font-size: 13px; }
+.seg button.on { background: #2c3446; color: var(--text); }
+.row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.swatch { width: 38px; height: 38px; border-radius: 10px; border: 2px solid rgba(255,255,255,.18); cursor: pointer; flex: none; position: relative; }
+.swatch.sm { width: 30px; height: 30px; border-radius: 8px; }
+.swatch.off { background: repeating-linear-gradient(45deg, #242a37 0 6px, #1a1f2a 6px 12px) !important; }
+.swatch .x { position: absolute; top: -7px; right: -7px; width: 18px; height: 18px; border-radius: 50%; background: #000; border: 1px solid var(--line); color: var(--muted); font-size: 11px; line-height: 16px; text-align: center; display: none; }
+.swatch:hover .x { display: block; }
+.slider { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+input[type=range] { accent-color: var(--accent); width: 150px; }
+.addsw { width: 30px; height: 30px; border-radius: 8px; border: 1px dashed #4a5470; background: none; color: var(--muted); }
+.lamp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.lamp-tile { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--line); cursor: pointer; min-width: 0; }
+.lamp-tile .t { min-width: 0; }
+.lamp-tile .n { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lamp-tile .s { font-size: 12px; color: var(--muted); }
+.lamp-tile.unchanged .swatch { opacity: .35; border-style: dashed; }
+.step-foot { display: flex; align-items: center; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.dots { display: flex; gap: 4px; flex-wrap: wrap; }
+.dots i { width: 14px; height: 14px; border-radius: 50%; display: inline-block; border: 1px solid rgba(255,255,255,.15); }
+.dots i.unch { background: none !important; border-style: dashed; }
+.warn { color: var(--warn); font-size: 12px; }
+.add-step { margin-top: 12px; width: 100%; padding: 12px; border: 1px dashed #3a4460; background: none; border-radius: var(--radius); color: var(--muted); }
+.add-step:hover { color: var(--text); border-color: var(--muted); }
+.empty { padding: 40px 20px; text-align: center; color: var(--muted); }
+
+/* ---------- popover couleurs ---------- */
+.pop { position: fixed; z-index: 50; width: 292px; background: #1a1f2b; border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 12px; }
+.pop h4 { margin: 8px 0 6px; font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+.pop h4:first-child { margin-top: 0; }
+.pop .grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; }
+.pop .grid .swatch { width: 100%; aspect-ratio: 1; height: auto; border-radius: 7px; }
+.pop .whites { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.pop .whites button { border: 1px solid var(--line); border-radius: 8px; padding: 6px 0 4px; font-size: 10px; color: #222; line-height: 1.2; }
+.pop .custom { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.pop input[type=color] { width: 44px; height: 32px; border: 0; background: none; padding: 0; }
+.pop .state { display: flex; gap: 4px; margin-bottom: 8px; }
+.pop .state button { flex: 1; }
+.pop .sel { outline: 2px solid #fff; outline-offset: 1px; }
+
+/* ---------- onglet lampes ---------- */
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+.card { padding: 16px; }
+.lamp-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.lamp-row:last-child { border-bottom: 0; }
+.lamp-row .glass { width: 26px; height: 26px; border-radius: 50%; background: #262b37; border: 2px solid #323a4d; flex: none; }
+.lamp-row input.alias { background: transparent; border: 1px solid transparent; border-radius: 7px; padding: 4px 6px; font-weight: 600; width: 100%; min-width: 0; }
+.lamp-row input.alias:hover, .lamp-row input.alias:focus { background: var(--panel-2); border-color: var(--line); outline: none; }
+.lamp-row .info { flex: 1; min-width: 0; }
+.badge { font-size: 11px; padding: 2px 7px; border-radius: 999px; background: var(--panel-2); color: var(--muted); border: 1px solid var(--line); }
+.badge.bad { color: var(--danger); }
+.pair-box { display: flex; gap: 8px; margin: 10px 0; }
+.pair-box input { flex: 1; background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px; padding: 9px 12px; letter-spacing: 1px; }
+ol.help { padding-left: 18px; margin: 8px 0 0; color: var(--muted); font-size: 13px; }
+ol.help li { margin-bottom: 6px; }
+.node-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.log { font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; max-height: 320px; overflow: auto; background: #0b0d12; border-radius: 8px; padding: 10px; border: 1px solid var(--line); }
+.log .error { color: var(--danger); } .log .warn { color: var(--warn); } .log .success { color: var(--ok); }
+
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #262d3d; border: 1px solid var(--line); padding: 10px 16px; border-radius: 10px; box-shadow: var(--shadow); z-index: 60; font-size: 14px; max-width: calc(100% - 32px); }
+.toast.error { border-color: var(--danger); }
+
+.two > *, .shows-layout > * { min-width: 0; }
+.now .t, .now .muted { overflow-wrap: anywhere; }
+#playlistSel, #syncChoice { max-width: 100%; min-width: 0; }
+.kw-row { display: flex; align-items: center; gap: 10px; margin: -4px 14px 12px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+.kw { flex: 1; min-width: 200px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; }
+.now { display: flex; gap: 14px; align-items: center; margin: 6px 0 12px; }
+.now .art { width: 54px; height: 54px; border-radius: 10px; background: linear-gradient(135deg, #2a3150, #171b26); display: grid; place-items: center; font-size: 24px; flex: none; }
+.now .t { font-weight: 700; font-size: 16px; }
+.prog { height: 6px; border-radius: 3px; background: var(--panel-2); overflow: hidden; margin: 6px 0 4px; }
+.prog > div { height: 100%; background: var(--accent); width: 0; }
+.times { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+.beatline { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 13px; }
+.beats { display: flex; gap: 6px; }
+.beats i { width: 14px; height: 14px; border-radius: 50%; background: #2a3042; display: inline-block; transition: background .08s, box-shadow .08s; }
+.beats i.on { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+.transport { display: flex; gap: 8px; margin-top: 12px; }
+.transport .btn { min-width: 52px; justify-content: center; font-size: 16px; }
+.ap-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.ap-row:last-child { border-bottom: 0; }
+.ap-row input { accent-color: var(--accent); width: 18px; height: 18px; }
+.sync-status { margin: 12px 0; padding: 10px 12px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--line); font-size: 13px; }
+.sync-status b { color: var(--text); }
+.tap { width: 100%; padding: 22px; border-radius: 14px; border: 2px dashed #4a5470; background: #121622; font-size: 17px; font-weight: 700; color: var(--text); user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+.tap:active, .tap.hit { background: #2a2210; border-color: var(--accent); }
+.music-err { color: var(--warn); font-size: 13px; margin: 8px 0; }
+.mic-box { margin-top: 12px; padding: 12px; border-radius: 10px; border: 1px solid var(--line); background: #121622; }
+.mic-meter { height: 6px; border-radius: 3px; background: var(--panel-2); overflow: hidden; margin: 10px 0 8px; }
+.mic-meter > div { height: 100%; width: 0; background: var(--ok); transition: width .1s; }
+details.fine { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+details.fine summary { cursor: pointer; color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+.swatches { display: inline-flex; gap: 4px; vertical-align: middle; margin: 0 4px; }
+.swatches i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; border: 1px solid rgba(255,255,255,.2); }
+.now .art img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+@media (max-width: 820px) {
+  .shows-layout, .two { grid-template-columns: 1fr; }
+  .show-list { position: static; }
+  input[type=range] { width: 110px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="brand"><span class="dot"></span> Show lumière <span class="muted small" style="font-weight:400">· Matter</span></div>
+    <span id="status" class="pill">Démarrage…</span>
+    <span id="queue" class="pill hidden"></span>
+    <div class="spacer"></div>
+    <button class="btn small" id="allWarm" title="Allumer toutes les lampes en blanc chaud">Blanc chaud</button>
+    <button class="btn small" id="allOff" title="Arrêter le show et éteindre toutes les lampes">Tout éteindre</button>
+    <nav class="tabs">
+      <button data-tab="shows" class="on">Shows</button>
+      <button data-tab="lamps">Lampes</button>
+      <button data-tab="music">Musique</button>
+      <button data-tab="settings">Réglages</button>
+    </nav>
+  </div>
+</header>
+
+<section class="stage"><div class="bulbs" id="bulbs"></div></section>
+
+<main>
+  <!-- ================= SHOWS ================= -->
+  <section id="tab-shows">
+    <div class="shows-layout">
+      <aside class="panel show-list">
+        <h3>Mes shows</h3>
+        <div id="showList"></div>
+        <div class="actions">
+          <button class="btn small" id="newShow">+ Nouveau</button>
+          <button class="btn small ghost" id="importShow">Importer…</button>
+          <input type="file" id="importFile" accept=".json,application/json" class="hidden">
+        </div>
+      </aside>
+      <div id="editor"></div>
+    </div>
+  </section>
+
+  <!-- ================= LAMPES ================= -->
+  <section id="tab-lamps" class="hidden">
+    <div class="two">
+      <div class="panel card">
+        <h2>Lampes</h2>
+        <p class="muted small" style="margin-top:0">L'ordre compte pour les palettes (la 1ʳᵉ couleur va à la 1ʳᵉ lampe…). Renomme, réordonne, ou exclus une lampe des shows.</p>
+        <div id="lampList"></div>
+      </div>
+      <div>
+        <div class="panel card">
+          <h2>Ajouter un appareil Matter</h2>
+          <div class="pair-box">
+            <input id="pairCode" placeholder="Code : 1234-567-8901 ou MT:…" autocomplete="off" spellcheck="false">
+            <button class="btn primary" id="pairBtn">Appairer</button>
+          </div>
+          <ol class="help">
+            <li>Sur l'iPhone, app <b>Maison</b> : ouvre les réglages du <b>pont Hue</b> (ou d'une de ses lampes) et touche <b>« Activer le mode de jumelage »</b>, puis copie le code à 11 chiffres.</li>
+            <li>Si ce bouton n'existe pas (pont ajouté à Maison via HomeKit et non Matter) : app <b>Hue</b> › Réglages › <b>Smart Home / Matter</b> › génère un code d'appairage. C'est la seule étape qui passe par Philips : ensuite, tout le pilotage se fait en Matter.</li>
+            <li>Colle le code ici dans les 15 minutes. Le Mac doit être sur le même réseau Wi-Fi que le pont.</li>
+          </ol>
+          <p class="muted small">Tes lampes restent dans l'app Maison : Matter permet plusieurs contrôleurs en même temps (« multi-admin »).</p>
+        </div>
+        <div class="panel card" style="margin-top:16px">
+          <h2>Appareils appairés</h2>
+          <div id="nodeList"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MUSIQUE ================= -->
+  <section id="tab-music" class="hidden">
+    <div class="two">
+      <div class="panel card">
+        <h2>Apple Music sur ce Mac</h2>
+        <div id="musicNow"></div>
+        <div class="transport">
+          <button class="btn" data-cmd="previous" title="Morceau précédent">⏮</button>
+          <button class="btn primary" data-cmd="playpause" title="Lecture / pause">⏯</button>
+          <button class="btn" data-cmd="next" title="Morceau suivant">⏭</button>
+        </div>
+        <div class="row" style="margin-top:14px;gap:8px">
+          <select id="playlistSel" style="flex:1;min-width:0"><option value="">Choisir une playlist…</option></select>
+          <button class="btn small" id="playPlaylist">▶ Lancer</button>
+        </div>
+        <h3 style="margin-top:20px">Sorties AirPlay</h3>
+        <div id="airplayList" class="small muted">Ouvre l'app Musique pour voir tes HomePod et enceintes.</div>
+        <button class="btn small ghost" id="airplayRefresh" style="margin-top:6px">Actualiser</button>
+      </div>
+      <div class="panel card">
+        <h2>Synchro lumières</h2>
+        <label class="toggle"><input type="checkbox" id="syncOn"><span class="sw"></span><span style="color:var(--text);font-size:15px">Synchroniser les lumières avec la musique</span></label>
+        <div class="field" style="margin-top:12px;width:100%">Couleurs <select id="syncChoice" style="flex:1"></select></div>
+        <div class="sync-status" id="syncStatus"></div>
+        <div class="mic-box">
+          <label class="toggle"><input type="checkbox" id="micOn"><span class="sw"></span><span style="color:var(--text)">🎤 Caler les lumières sur les temps grâce au micro du Mac</span></label>
+          <div class="mic-meter"><div id="micLevel"></div></div>
+          <div id="micStatus" class="small muted">Le micro écoute la musique (HomePod, enceintes) pour trouver les temps. Rien n'est enregistré ni envoyé.</div>
+        </div>
+        <div class="field" style="margin:12px 0 4px;width:100%;flex-wrap:wrap">Intensité du rythme
+          <select id="rhythmIntensity">
+            <option value="auto">Automatique (selon la musique)</option>
+            <option value="doux">Douce</option>
+            <option value="moyen">Moyenne</option>
+            <option value="fort">Forte</option>
+            <option value="aucun">Aucune (couleurs seulement)</option>
+          </select></div>
+        <div class="row" style="margin-top:10px;gap:8px">
+          <button class="btn small" id="saveAuto" title="Crée un show modifiable avec les couleurs automatiques de ce morceau">Enregistrer ces couleurs comme show</button>
+        </div>
+        <details class="fine">
+          <summary>Réglages fins</summary>
+          <button class="tap" id="tapBtn">Taper le tempo ici</button>
+          <p class="muted small" style="margin:8px 0">Sans micro : tape 8 fois ou plus sur les temps du morceau (ou touche T). <button class="btn small ghost" id="resetCalib">Oublier le calage de ce morceau</button></p>
+          <div class="slider" style="margin-top:8px"><span style="color:var(--text)">Avance des lumières</span> <input type="range" id="lead" min="-1" max="1" step="0.05"> <b id="leadVal"></b></div>
+          <p class="muted small">Si les lampes changent après le temps, augmente ; si elles changent avant, diminue.</p>
+        </details>
+      </div>
+    </div>
+    <div class="panel card" style="margin-top:16px">
+      <h2>Comment ça marche</h2>
+      <ol class="help">
+        <li>Joue ta musique avec l'app <b>Musique du Mac</b> (ou les boutons ci-dessus) et choisis tes HomePod / enceintes dans <b>Sorties AirPlay</b>.</li>
+        <li>Active la <b>synchro</b>. En <b>Automatique</b>, les couleurs viennent de la <b>pochette</b> du morceau (ou de son genre) et le style suit la musique : doux pour un morceau calme, plus vif pour un morceau rapide. Une playlist « Noël » ou « Halloween » lance les shows dédiés.</li>
+        <li>Si tu choisis un <b>show</b>, ses couleurs sont gardées mais son <b>rythme suit la musique</b> : à chaque temps, un groupe de lampes change et la couleur se propage en vague dans la pièce.</li>
+        <li>Pour tomber pile sur les temps, active le <b>micro</b> : il écoute quelques secondes et cale tout seul les lumières. Le tempo est aussi mesuré sur l'extrait du morceau fourni par Apple. Laisse cette page ouverte.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ================= RÉGLAGES ================= -->
+  <section id="tab-settings" class="hidden">
+    <div class="two">
+      <div class="panel card">
+        <h2>Réglages</h2>
+        <div style="margin:14px 0">
+          <div class="slider"><span style="color:var(--text)">Débit max vers le pont</span> <input type="range" id="rate" min="2" max="30" step="1"> <b id="rateVal"></b> cmd/s</div>
+          <p class="muted small">Le pont Hue relaie chaque commande Matter en Zigbee : au-delà d'environ 10 commandes par seconde, il met les suivantes en file d'attente et le show prend du retard. Augmente seulement si tout reste fluide.</p>
+        </div>
+        <div style="margin:14px 0">
+          <label class="toggle"><input type="checkbox" id="demo"><span class="sw"></span><span style="color:var(--text)">Mode démo (6 lampes virtuelles)</span></label>
+          <p class="muted small">Pour composer un show sans être chez toi : les lampes virtuelles n'apparaissent que dans l'aperçu.</p>
+        </div>
+      </div>
+      <div class="panel card">
+        <h2>Journal</h2>
+        <div class="log" id="log"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="pop hidden" id="pop"></div>
+<div class="toast hidden" id="toast"></div>
+
+<script>
+// =====================================================================================
+// Données & utilitaires
+// =====================================================================================
+const PRESETS = ["#ff0000","#ff4f3a","#ff8c00","#ffb000","#ffe600","#a8ff00","#00d84a","#00ffa2",
+                 "#00c8ff","#0080ff","#2b50ff","#4b2bff","#9b30ff","#ff00d4","#ff2d6f","#ffffff"];
+const WHITES = [["2200K","Bougie"],["2700K","Chaud"],["4000K","Neutre"],["5000K","Jour"],["6500K","Froid"]];
+const KIND = { color: "Couleur", white: "Blanc", dim: "Variateur", onoff: "On/Off" };
+const ICON = {
+  play: '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11l9-5.5z"/></svg>',
+  stop: '<svg viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="3" width="10" height="10" rx="1.5"/></svg>',
+  dup: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="5" width="9" height="9" rx="2"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/></svg>',
+  up: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10l4-4 4 4"/></svg>',
+  down: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6l4 4 4-4"/></svg>',
+  del: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.7 9h5.6l.7-9"/></svg>',
+  eye: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/></svg>',
+  flash: '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M9 1L3 9h4l-1 6 6-8H8z"/></svg>',
+};
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const isK = c => typeof c === "string" && /^\d{4,5}K$/i.test(c);
+function kelvinToHex(k) {
+  const t = Math.min(40000, Math.max(1000, parseInt(k))) / 100; let r, g, b;
+  if (t <= 66) { r = 255; g = 99.47 * Math.log(t) - 161.12; b = t <= 19 ? 0 : 138.52 * Math.log(t - 10) - 305.04; }
+  else { r = 329.7 * Math.pow(t - 60, -0.1332); g = 288.12 * Math.pow(t - 60, -0.0755); b = 255; }
+  const c = v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0");
+  return "#" + c(r) + c(g) + c(b);
+}
+const disp = c => c === "off" ? "#1d222d" : isK(c) ? kelvinToHex(c) : (c || "#ffffff");
+// couleur réellement visible selon le type de lampe (une lampe blanche ignore les couleurs)
+const shown = (l, c) => !l || !l.kind || l.kind === "color" ? disp(c) : (l.kind === "white" ? (isK(c) ? disp(c) : "#ffe4c4") : "#ffd6a0");
+const colorLabel = c => c === "off" ? "Éteinte" : isK(c) ? (WHITES.find(w => w[0] === c)?.[1] ?? "Blanc") + " " + c : c.toUpperCase();
+
+async function api(method, url, data) {
+  const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: data ? JSON.stringify(data) : undefined });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.error || res.statusText);
+  return json;
+}
+let toastTimer;
+function toast(msg, isError) {
+  const t = $("#toast"); t.textContent = msg; t.className = "toast" + (isError ? " error" : "");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.add("hidden"), isError ? 6000 : 2500);
+}
+
+// Même logique que le serveur (lib/show.mjs) pour prévisualiser une étape
+function resolveStep(step, lamps) {
+  const out = {}; const mode = step.mode || "all";
+  const norm = s => (!s || s.on === false || s.color === "off" || Number(s.brightness) === 0) ? { on: false } : { on: true, color: s.color || "2700K", brightness: Number(s.brightness ?? 100) };
+  if (mode === "all") lamps.forEach(l => out[l.id] = norm(step.all));
+  else if (mode === "palette") {
+    const cs = (step.palette?.colors || []).filter(Boolean), n = cs.length, sh = Number(step.palette?.shift) || 0;
+    if (n) lamps.forEach((l, i) => { const c = cs[(((i + sh) % n) + n) % n]; out[l.id] = c === "off" ? { on: false } : norm({ on: true, color: c, brightness: step.palette.brightness }); });
+  } else lamps.forEach(l => { if (step.lamps?.[l.id]) out[l.id] = norm(step.lamps[l.id]); });
+  return out;
+}
+
+// =====================================================================================
+// État de l'application
+// =====================================================================================
+const S = { st: null, tab: "shows", showId: localStorage.getItem("showId") || null, show: null, saveTimer: null };
+const lamps = () => (S.st?.lamps || []);
+const activeLamps = () => lamps().filter(l => !l.hidden);
+
+// ---------- Connexion temps réel ----------
+function connect() {
+  const es = new EventSource("/api/events");
+  es.addEventListener("state", e => { S.st = JSON.parse(e.data); renderAll(); });
+  es.addEventListener("preview", e => { const { changes, fade } = JSON.parse(e.data); Object.assign(S.st.preview, changes); paintBulbs(fade); });
+  es.addEventListener("player", e => { S.st.player = JSON.parse(e.data); renderPlayer(); });
+  es.addEventListener("music", e => { S.st.music = JSON.parse(e.data); renderMusic(); });
+  es.addEventListener("shows", e => { S.st.shows = JSON.parse(e.data); renderShowList(); });
+  es.addEventListener("pending", e => { const n = JSON.parse(e.data); const q = $("#queue"); q.classList.toggle("hidden", n < 4); q.textContent = `${n} commandes en file`; });
+  es.addEventListener("log", e => { const l = JSON.parse(e.data); S.st.logs.push(l); renderLog(); if (l.level === "error") toast(l.msg, true); if (l.level === "success") toast(l.msg); });
+  es.addEventListener("identify", e => { const id = JSON.parse(e.data).id; const b = document.querySelector(`.bulb[data-id="${CSS.escape(id)}"]`); if (b) { b.classList.remove("blink"); void b.offsetWidth; b.classList.add("blink"); } });
+  es.onerror = () => { $("#status").className = "pill err"; $("#status").textContent = "Serveur arrêté ?"; };
+}
+
+// =====================================================================================
+// Rendu général
+// =====================================================================================
+let lampSig = "";
+function renderAll() {
+  renderMusic();
+  renderStatus(); renderBulbs(); renderShowList(); renderLamps(); renderNodes(); renderSettings(); renderLog();
+  // on ne reconstruit l'éditeur que si nécessaire (pour ne pas perdre la saisie en cours)
+  const sig = JSON.stringify([activeLamps().map(l => [l.id, l.name, l.kind, l.virtual]), S.st.settings.rate]);
+  if (!S.show || !S.st.shows.find(s => s.id === S.showId)) {
+    const id = S.st.shows.find(s => s.id === S.showId)?.id || S.st.shows[0]?.id;
+    if (id) openShow(id); else { S.show = null; renderEditor(); }
+  } else if (sig !== lampSig) renderEditor();
+  else renderPlayer();
+  lampSig = sig;
+}
+
+function renderStatus() {
+  const st = S.st, el = $("#status");
+  const real = lamps().filter(l => !l.virtual).length;
+  if (st.matter.error) { el.className = "pill err"; el.textContent = "Matter : erreur"; el.title = st.matter.error; }
+  else if (!st.matter.ready) { el.className = "pill"; el.textContent = "Matter : démarrage…"; }
+  else if (st.matter.pairing) { el.className = "pill"; el.textContent = "Appairage en cours…"; }
+  else { el.className = "pill ok"; el.textContent = real ? `Matter · ${real} lampe${real > 1 ? "s" : ""}` : (st.settings.demo ? "Mode démo" : "Matter prêt · aucune lampe"); el.title = ""; }
+}
+
+function renderBulbs() {
+  const list = activeLamps();
+  $("#bulbs").innerHTML = list.length ? list.map(l => `
+    <div class="bulb" data-id="${esc(l.id)}" title="Cliquer pour faire clignoter « ${esc(l.name)} »">
+      <div class="glass"></div><div class="name">${esc(l.name)}</div>
+    </div>`).join("") : `<div class="empty-stage">Aucune lampe pour l'instant. Va dans <b>Lampes</b> pour appairer ton pont Hue, ou active le <b>mode démo</b> dans Réglages.</div>`;
+  document.querySelectorAll(".bulb").forEach(b => b.onclick = () => api("POST", `/api/lamps/${encodeURIComponent(b.dataset.id)}/identify`).catch(e => toast(e.message, true)));
+  paintBulbs(0);
+}
+function glassStyle(el, p, fade) {
+  el.style.transitionDuration = `${Math.max(0.15, fade || 0)}s`;
+  if (p?.on) {
+    const c = p.display || disp(p.color), a = 0.35 + 0.65 * (p.brightness ?? 100) / 100;
+    el.style.backgroundColor = c; el.style.opacity = a; el.style.boxShadow = `0 0 ${10 + 26 * a}px ${c}`; el.style.borderColor = "rgba(255,255,255,.35)";
+  } else { el.style.backgroundColor = "#262b37"; el.style.opacity = 1; el.style.boxShadow = "none"; el.style.borderColor = "#323a4d"; }
+}
+function paintBulbs(fade) {
+  document.querySelectorAll(".bulb").forEach(b => glassStyle(b.querySelector(".glass"), S.st.preview[b.dataset.id], fade));
+  document.querySelectorAll(".lamp-row[data-id]").forEach(r => glassStyle(r.querySelector(".glass"), S.st.preview[r.dataset.id], fade));
+}
+
+// =====================================================================================
+// Liste des shows
+// =====================================================================================
+function renderShowList() {
+  const p = S.st.player;
+  $("#showList").innerHTML = S.st.shows.map(s => `
+    <div class="item ${s.id === S.showId ? "on" : ""}" data-id="${esc(s.id)}">
+      <span>${esc(s.name)} <span class="muted small">· ${s.steps} ét.</span></span>
+      ${p.playing && p.showId === s.id ? `<span class="playing" title="${p.sync ? "En synchro avec la musique" : "En cours"}"></span>` : ""}
+    </div>`).join("") || `<div class="muted small" style="padding:8px">Aucun show.</div>`;
+  document.querySelectorAll("#showList .item").forEach(i => i.onclick = () => openShow(i.dataset.id));
+}
+
+async function openShow(id) {
+  if (S.saveTimer) await flushSave();
+  S.showId = id; localStorage.setItem("showId", id);
+  try { S.show = await api("GET", `/api/shows/${encodeURIComponent(id)}`); } catch { S.show = null; }
+  renderShowList(); renderEditor();
+}
+
+$("#newShow").onclick = async () => {
+  const show = await api("POST", "/api/shows", { name: "Nouveau show", loop: true, speed: 1, steps: [newStep()] });
+  await openShow(show.id);
+  document.querySelector(".name-input")?.select();
+};
+$("#importShow").onclick = () => $("#importFile").click();
+$("#importFile").onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { const data = JSON.parse(await f.text()); delete data.id; const s = await api("POST", "/api/shows", data); await openShow(s.id); toast("Show importé"); }
+  catch (err) { toast("Fichier invalide : " + err.message, true); }
+  e.target.value = "";
+};
+
+// =====================================================================================
+// Éditeur de show
+// =====================================================================================
+function newStep(from) {
+  if (from) return JSON.parse(JSON.stringify(from));
+  return { name: "Nouvelle étape", duration: 4, fade: 1.5, mode: "all", all: { on: true, color: "#2b50ff", brightness: 80 }, palette: { colors: ["#ff0000", "#00d84a", "#2b50ff"], brightness: 80, shift: 0 }, lamps: {} };
+}
+function save() {
+  clearTimeout(S.saveTimer);
+  S.saveTimer = setTimeout(flushSave, 500);
+}
+async function flushSave() {
+  clearTimeout(S.saveTimer); S.saveTimer = null;
+  if (!S.show) return;
+  try { await api("PUT", `/api/shows/${encodeURIComponent(S.show.id)}`, S.show); } catch (e) { toast("Sauvegarde impossible : " + e.message, true); }
+}
+const unitSec = sh => (sh?.tempo?.bpm ? 60 / Number(sh.tempo.bpm) : 1); // show musical : durées en temps
+const unitLabel = sh => (sh?.tempo?.bpm ? "temps" : "s");
+const totalUnits = sh => sh.steps.reduce((a, s) => a + (Number(s.duration) || 0), 0);
+const totalDuration = sh => (totalUnits(sh) * unitSec(sh)) / (Number(sh.speed) || 1);
+const durationText = sh => sh.tempo?.bpm
+  ? `Durée : ${totalUnits(sh)} temps (≈ ${fmtTime(totalDuration(sh))} à ${sh.tempo.bpm} BPM)${sh.loop ? ", en boucle" : ""}`
+  : `Durée totale : ${fmtTime(totalDuration(sh))}${sh.loop ? " (en boucle)" : ""}`;
+const fmtTime = s => s >= 60 ? `${Math.floor(s / 60)} min ${Math.round(s % 60)} s` : `${Math.round(s * 10) / 10} s`;
+
+function renderEditor() {
+  const ed = $("#editor"), sh = S.show;
+  if (!sh) { ed.innerHTML = `<div class="panel empty">Crée ton premier show avec <b>+ Nouveau</b>.</div>`; return; }
+  const playingThis = S.st.player.playing && S.st.player.showId === sh.id;
+  ed.innerHTML = `
+    <div class="panel">
+      <div class="editor-head">
+        <input class="name-input" id="showName" value="${esc(sh.name)}" aria-label="Nom du show">
+        <button class="btn primary" id="playBtn">${playingThis ? ICON.stop + " Arrêter" : ICON.play + " Lancer"}</button>
+        <label class="toggle" title="Recommencer au début à la fin"><input type="checkbox" id="loop" ${sh.loop ? "checked" : ""}><span class="sw"></span>Boucle</label>
+        <span class="field">Vitesse
+          <select id="speed">${[0.5, 0.75, 1, 1.25, 1.5, 2, 3].map(v => `<option value="${v}" ${Number(sh.speed || 1) === v ? "selected" : ""}>${String(v).replace(".", ",")}×</option>`).join("")}</select>
+        </span>
+        <label class="toggle" title="Compter les durées en temps musicaux pour se caler sur la musique (onglet Musique)"><input type="checkbox" id="musical" ${sh.tempo ? "checked" : ""}><span class="sw"></span>♪ Musical</label>
+        ${sh.tempo ? `<span class="field" title="Tempo utilisé quand tu lances le show à la main. En synchro musique, c'est le tempo du morceau qui compte.">Tempo <input class="num" id="bpm" type="number" min="40" max="240" step="1" value="${sh.tempo.bpm}"> BPM</span>` : ""}
+        <span class="spacer"></span>
+        <button class="iconbtn" id="exportShow" title="Exporter (fichier .json)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2v8M4.5 6.5 8 10l3.5-3.5M2.5 11.5v2h11v-2"/></svg></button>
+        <button class="iconbtn" id="dupShow" title="Dupliquer ce show">${ICON.dup}</button>
+        <button class="iconbtn" id="delShow" title="Supprimer ce show">${ICON.del}</button>
+      </div>
+      ${sh.tempo ? `<div class="kw-row"><span>♪ Se lance tout seul (synchro musique) sur les playlists, genres ou titres contenant :</span>
+        <input id="kw" class="kw" value="${esc((sh.music?.match || []).join(", "))}" placeholder="ex. noël, christmas, jingle"></div>` : ""}
+      <div class="timeline" id="timeline"></div>
+      <div class="timeline-info"><span id="tlLeft">${sh.steps.length} étape${sh.steps.length > 1 ? "s" : ""}</span><span>${durationText(sh)}</span></div>
+    </div>
+    <div class="steps" id="steps"></div>
+    <button class="add-step" id="addStep">+ Ajouter une étape</button>`;
+
+  $("#showName").oninput = e => { sh.name = e.target.value; save(); };
+  $("#showName").onchange = () => flushSave().then(() => api("GET", "/api/shows").then(l => { S.st.shows = l; renderShowList(); }));
+  $("#loop").onchange = e => { sh.loop = e.target.checked; save(); renderEditorHeadInfo(); };
+  $("#speed").onchange = e => { sh.speed = Number(e.target.value); save(); renderEditorHeadInfo(); };
+  $("#playBtn").onclick = togglePlay;
+  $("#musical").onchange = e => {
+    // conversion secondes <-> temps (à 120 BPM par défaut)
+    const bpm = sh.tempo?.bpm || 120, k = e.target.checked ? bpm / 60 : 60 / bpm;
+    const r = v => Math.max(0, Math.round(v * (e.target.checked ? 2 : 10)) / (e.target.checked ? 2 : 10));
+    sh.steps.forEach(st => { st.duration = Math.max(e.target.checked ? 0.5 : 0.2, r((Number(st.duration) || 1) * k)); st.fade = r((Number(st.fade) || 0) * k); });
+    if (e.target.checked) { sh.tempo = { bpm }; sh.music ||= { match: [] }; } else delete sh.tempo;
+    save(); renderEditor();
+  };
+  $("#bpm")?.addEventListener("input", e => { const v = Number(e.target.value); if (v >= 40 && v <= 240) { sh.tempo.bpm = v; save(); renderEditorHeadInfo(); document.querySelectorAll(".step").forEach((el, i) => updateFoot(el, sh.steps[i])); } });
+  $("#kw")?.addEventListener("input", e => { sh.music = { ...(sh.music || {}), match: e.target.value.split(",").map(x => x.trim()).filter(Boolean) }; save(); });
+  $("#exportShow").onclick = () => {
+    const blob = new Blob([JSON.stringify({ ...sh, id: undefined }, null, 2)], { type: "application/json" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `${sh.name.replace(/[^\w\-]+/g, "_") || "show"}.json`; a.click();
+  };
+  $("#dupShow").onclick = async () => { await flushSave(); const c = await api("POST", "/api/shows", { ...sh, id: undefined, name: sh.name + " (copie)" }); openShow(c.id); };
+  $("#delShow").onclick = async () => {
+    if (!confirm(`Supprimer le show « ${sh.name} » ?`)) return;
+    await api("DELETE", `/api/shows/${encodeURIComponent(sh.id)}`); S.show = null; S.showId = null; localStorage.removeItem("showId");
+  };
+  $("#addStep").onclick = () => { sh.steps.push(newStep(sh.steps[sh.steps.length - 1])); if (sh.steps.length > 1) sh.steps[sh.steps.length - 1].name = "Étape " + sh.steps.length; save(); renderEditor(); document.querySelector(".step:last-child")?.scrollIntoView({ behavior: "smooth", block: "center" }); };
+
+  const box = $("#steps");
+  sh.steps.forEach((st, i) => box.appendChild(stepCard(st, i)));
+  renderTimeline(); renderPlayer();
+}
+function renderEditorHeadInfo() {
+  const sh = S.show; const info = document.querySelector(".timeline-info span:last-child");
+  if (info) info.textContent = durationText(sh);
+}
+
+function renderTimeline() {
+  const sh = S.show, tl = $("#timeline"); if (!tl) return;
+  const ls = activeLamps();
+  tl.innerHTML = sh.steps.map((st, i) => {
+    const pool = ls.length ? ls : [{ id: "x" }];
+    const res = resolveStep(st, pool);
+    const cols = pool.filter(l => res[l.id]).map(l => res[l.id].on ? shown(l, res[l.id].color) : "#141820");
+    const bg = cols.length > 1 ? `linear-gradient(90deg, ${cols.join(",")})` : (cols[0] || "#1d222d");
+    return `<div class="blk" data-i="${i}" style="flex:${Math.max(0.2, Number(st.duration) || 1)};background:${bg}" title="${esc((i + 1) + ". " + st.name)} — ${st.duration}s"><div class="prog"></div></div>`;
+  }).join("");
+  tl.querySelectorAll(".blk").forEach(b => b.onclick = () => document.querySelectorAll(".step")[b.dataset.i]?.scrollIntoView({ behavior: "smooth", block: "center" }));
+}
+
+function renderPlayer() {
+  const p = S.st.player, sh = S.show;
+  renderShowList();
+  if (!sh) return;
+  const mine = p.showId === sh.id;
+  const btn = $("#playBtn");
+  if (btn) btn.innerHTML = p.playing && mine ? ICON.stop + " Arrêter" : ICON.play + " Lancer";
+  document.querySelectorAll(".step").forEach((el, i) => el.classList.toggle("cur", mine && p.step === i && (p.playing || Date.now() - p.stepStartedAt < 60000)));
+  document.querySelectorAll(".timeline .blk").forEach((el, i) => {
+    const cur = mine && p.playing && p.step === i;
+    el.classList.toggle("cur", cur);
+    const pr = el.querySelector(".prog");
+    pr.style.transition = "none"; pr.style.width = "0";
+    if (cur) { void pr.offsetWidth; const left = Math.max(0, p.stepDuration * 1000 - (Date.now() - p.stepStartedAt)); pr.style.transition = `width ${left}ms linear`; pr.style.width = "100%"; }
+  });
+}
+
+async function togglePlay() {
+  const p = S.st.player;
+  try {
+    if (p.playing && p.showId === S.show.id) await (p.sync ? api("POST", "/api/music/sync", { enabled: false }) : api("POST", "/api/stop"));
+    else { await flushSave(); await api("POST", "/api/play", { show: S.show }); }
+  } catch (e) { toast(e.message, true); }
+}
+
+// ---------- Carte d'une étape ----------
+function stepCard(st, i) {
+  const sh = S.show;
+  st.mode ||= "all"; st.all ||= { on: true, color: "#ffffff", brightness: 80 };
+  st.palette ||= { colors: ["#ff0000", "#00d84a", "#2b50ff"], brightness: 80, shift: 0 }; st.lamps ||= {};
+  const el = document.createElement("div");
+  el.className = "panel step";
+  el.innerHTML = `
+    <div class="step-head">
+      <span class="step-num">${i + 1}</span>
+      <input class="step-name" value="${esc(st.name)}" aria-label="Nom de l'étape">
+      <span class="field" title="Temps passé sur cette étape avant de passer à la suivante">Durée <input class="num" type="number" min="0.2" step="${sh.tempo ? 0.5 : 0.1}" data-k="duration" value="${st.duration}"> ${unitLabel(sh)}</span>
+      <span class="field" title="Temps de transition progressive vers les nouvelles couleurs">Fondu <input class="num" type="number" min="0" step="${sh.tempo ? 0.25 : 0.1}" data-k="fade" value="${st.fade}"> ${unitLabel(sh)}</span>
+      <span class="step-tools">
+        <button class="iconbtn" data-a="test" title="Tester cette étape sur les lampes">${ICON.eye}</button>
+        <button class="iconbtn" data-a="from" title="Lancer le show à partir d'ici">${ICON.play}</button>
+        <button class="iconbtn" data-a="dup" title="Dupliquer">${ICON.dup}</button>
+        <button class="iconbtn" data-a="up" title="Monter" ${i === 0 ? "disabled" : ""}>${ICON.up}</button>
+        <button class="iconbtn" data-a="down" title="Descendre" ${i === sh.steps.length - 1 ? "disabled" : ""}>${ICON.down}</button>
+        <button class="iconbtn" data-a="del" title="Supprimer">${ICON.del}</button>
+      </span>
+    </div>
+    <div class="seg">
+      <button data-m="all" class="${st.mode === "all" ? "on" : ""}">Toutes pareilles</button>
+      <button data-m="palette" class="${st.mode === "palette" ? "on" : ""}">Palette répartie</button>
+      <button data-m="custom" class="${st.mode === "custom" ? "on" : ""}">Lampe par lampe</button>
+    </div>
+    <div class="body"></div>
+    <div class="step-foot"><span class="muted small">Résultat :</span><span class="dots"></span><span class="warn"></span></div>`;
+
+  const refresh = () => { const n = stepCard(st, sh.steps.indexOf(st)); el.replaceWith(n); renderTimeline(); renderPlayer(); };
+  el.querySelector(".step-name").oninput = e => { st.name = e.target.value; save(); };
+  el.querySelectorAll(".num").forEach(inp => inp.oninput = () => { const v = parseFloat(inp.value.replace(",", ".")); if (!isNaN(v)) { st[inp.dataset.k] = Math.max(inp.dataset.k === "duration" ? 0.2 : 0, v); save(); renderTimeline(); renderEditorHeadInfo(); updateFoot(el, st); } });
+  el.querySelectorAll(".seg button").forEach(b => b.onclick = () => { st.mode = b.dataset.m; save(); refresh(); });
+  el.querySelectorAll("[data-a]").forEach(b => b.onclick = async () => {
+    const idx = sh.steps.indexOf(st), a = b.dataset.a;
+    if (a === "test") { await flushSave(); api("POST", "/api/step", { show: sh, index: idx }).catch(e => toast(e.message, true)); return; }
+    if (a === "from") { await flushSave(); api("POST", "/api/play", { show: sh, from: idx }).catch(e => toast(e.message, true)); return; }
+    if (a === "dup") { const c = newStep(st); c.name = st.name + " (bis)"; sh.steps.splice(idx + 1, 0, c); }
+    if (a === "up" && idx > 0) [sh.steps[idx - 1], sh.steps[idx]] = [sh.steps[idx], sh.steps[idx - 1]];
+    if (a === "down" && idx < sh.steps.length - 1) [sh.steps[idx + 1], sh.steps[idx]] = [sh.steps[idx], sh.steps[idx + 1]];
+    if (a === "del") { if (sh.steps.length > 1 && !confirm(`Supprimer l'étape « ${st.name} » ?`)) return; sh.steps.splice(idx, 1); }
+    save(); renderEditor();
+  });
+
+  const body = el.querySelector(".body");
+  if (st.mode === "all") {
+    const a = st.all, on = a.on !== false;
+    body.innerHTML = `<div class="row">
+      <div class="swatch ${on ? "" : "off"}" style="background:${disp(a.color)}" title="Choisir la couleur"></div>
+      <div><div style="font-weight:600">${on ? esc(colorLabel(a.color)) : "Éteintes"}</div><div class="muted small">Toutes les lampes</div></div>
+      <label class="slider">Luminosité <input type="range" min="1" max="100" value="${a.brightness ?? 80}" ${on ? "" : "disabled"}> <b>${a.brightness ?? 80}%</b></label>
+    </div>`;
+    body.querySelector(".swatch").onclick = ev => openPicker(ev.currentTarget, { value: on ? a.color : "off", allowOff: true }, v => { if (v === "off") a.on = false; else { a.on = true; a.color = v; } save(); refresh(); });
+    bindRange(body, v => { a.brightness = v; }, st, el);
+  } else if (st.mode === "palette") {
+    const p = st.palette;
+    body.innerHTML = `<div class="row">
+      <div class="row" style="gap:8px" id="pal">${p.colors.map((c, k) => `<div class="swatch sm ${c === "off" ? "off" : ""}" data-k="${k}" style="background:${disp(c)}" title="${esc(colorLabel(c))}"><span class="x" data-x="${k}">×</span></div>`).join("")}<button class="addsw" title="Ajouter une couleur">+</button></div>
+      <label class="slider">Luminosité <input type="range" min="1" max="100" value="${p.brightness ?? 80}"> <b>${p.brightness ?? 80}%</b></label>
+      <span class="field" title="Décale les couleurs d'une lampe à l'autre — enchaîne plusieurs étapes décalées pour un effet de mouvement">Décalage
+        <button class="btn small" data-s="-1">−</button><b>${p.shift || 0}</b><button class="btn small" data-s="1">+</button></span>
+      <button class="btn small" data-next title="Ajoute juste après une copie de cette étape décalée d'un cran">Étape suivante décalée →</button>
+    </div>
+    <p class="muted small" style="margin:8px 0 0">Les couleurs sont distribuées dans l'ordre des lampes (onglet Lampes), puis on recommence. « Éteinte » crée des trous : pratique pour un chenillard.</p>`;
+    body.querySelectorAll(".swatch[data-k]").forEach(sw => sw.onclick = ev => {
+      if (ev.target.dataset.x !== undefined) { p.colors.splice(Number(ev.target.dataset.x), 1); save(); refresh(); return; }
+      const k = Number(sw.dataset.k);
+      openPicker(sw, { value: p.colors[k], allowOff: true }, v => { p.colors[k] = v; save(); refresh(); });
+    });
+    body.querySelector(".addsw").onclick = ev => openPicker(ev.currentTarget, { value: null, allowOff: true }, v => { p.colors.push(v); save(); refresh(); });
+    body.querySelectorAll("[data-s]").forEach(b => b.onclick = () => { p.shift = (Number(p.shift) || 0) + Number(b.dataset.s); save(); refresh(); });
+    body.querySelector("[data-next]").onclick = () => {
+      const idx = sh.steps.indexOf(st), c = newStep(st);
+      c.palette.shift = (Number(p.shift) || 0) + 1; c.name = st.name.replace(/\s*\(\+\d+\)$/, "") + ` (+${c.palette.shift})`;
+      sh.steps.splice(idx + 1, 0, c); save(); renderEditor();
+    };
+    bindRange(body, v => { p.brightness = v; }, st, el);
+  } else {
+    const ls = activeLamps();
+    body.innerHTML = ls.length ? `<div class="lamp-grid">${ls.map(l => {
+      const s = st.lamps[l.id];
+      const label = !s ? "Inchangée" : s.on === false ? "Éteinte" : `${colorLabel(s.color)} · ${s.brightness ?? 100}%`;
+      return `<div class="lamp-tile ${s ? "" : "unchanged"}" data-id="${esc(l.id)}">
+        <div class="swatch sm ${s && s.on === false ? "off" : ""}" style="background:${s && s.on !== false ? disp(s.color) : "#262b37"}"></div>
+        <div class="t"><div class="n">${esc(l.name)}</div><div class="s">${esc(label)}</div></div></div>`;
+    }).join("")}</div>
+    <div class="row" style="margin-top:10px"><button class="btn small" data-fill>Tout remplir depuis l'étape précédente</button><button class="btn small ghost" data-clear>Tout mettre « inchangée »</button></div>`
+    : `<p class="muted">Aucune lampe active. Appaire ton pont dans l'onglet Lampes (ou active le mode démo).</p>`;
+    body.querySelectorAll(".lamp-tile").forEach(t => t.onclick = () => {
+      const id = t.dataset.id, lamp = ls.find(l => l.id === id), s = st.lamps[id];
+      openPicker(t, { value: s ? (s.on === false ? "off" : s.color) : null, allowOff: true, allowUnchanged: true, brightness: s?.brightness ?? 80, lamp }, (v, extra) => {
+        if (v === null) delete st.lamps[id];
+        else if (v === "off") st.lamps[id] = { on: false };
+        else st.lamps[id] = { on: true, color: v, brightness: extra?.brightness ?? s?.brightness ?? 80 };
+        save(); refresh();
+      });
+    });
+    body.querySelector("[data-fill]")?.addEventListener("click", () => {
+      const idx = sh.steps.indexOf(st); const prev = sh.steps[idx - 1];
+      if (!prev) return toast("Pas d'étape précédente");
+      const r = resolveStep(prev, ls); st.lamps = {};
+      for (const [id, s] of Object.entries(r)) st.lamps[id] = s.on ? { on: true, color: s.color, brightness: s.brightness } : { on: false };
+      save(); refresh();
+    });
+    body.querySelector("[data-clear]")?.addEventListener("click", () => { st.lamps = {}; save(); refresh(); });
+  }
+  updateFoot(el, st);
+  return el;
+}
+
+function bindRange(body, set, st, el) {
+  const r = body.querySelector("input[type=range]"); if (!r) return;
+  r.oninput = () => { set(Number(r.value)); r.nextElementSibling.textContent = r.value + "%"; save(); updateFoot(el, st); };
+  r.onchange = () => renderTimeline();
+}
+
+function updateFoot(el, st) {
+  const ls = activeLamps(), res = resolveStep(st, ls);
+  el.querySelector(".dots").innerHTML = ls.map(l => { const s = res[l.id]; return !s ? `<i class="unch" title="${esc(l.name)} : inchangée"></i>` : `<i style="background:${s.on ? shown(l, s.color) : "#141820"};opacity:${s.on ? 0.4 + 0.6 * s.brightness / 100 : 1}" title="${esc(l.name)}"></i>`; }).join("") || '<span class="muted small">—</span>';
+  // estimation : jusqu'à 2 commandes Matter par lampe réelle (luminosité + couleur)
+  const real = ls.filter(l => !l.virtual && res[l.id]).length;
+  const need = (real * 2) / (S.st.settings.rate || 10);
+  const speed = Number(S.show?.speed) || 1;
+  el.querySelector(".warn").textContent = real && need > ((Number(st.duration) || 1) * unitSec(S.show)) / speed
+    ? `⚠ Étape courte : le pont a besoin d'environ ${need.toFixed(1)} s pour mettre à jour ${real} lampes.` : "";
+}
+
+// =====================================================================================
+// Sélecteur de couleur (popover)
+// =====================================================================================
+let popClose = null;
+function openPicker(anchor, opts, onPick) {
+  const pop = $("#pop");
+  let bright = opts.brightness ?? 80;
+  const lamp = opts.lamp;
+  const kindNote = lamp && lamp.kind !== "color" ? `<p class="muted small" style="margin:0 0 8px">« ${esc(lamp.name)} » est une lampe ${KIND[lamp.kind].toLowerCase()} : ${lamp.kind === "white" ? "seuls les blancs et la luminosité" : "seule la luminosité"} seront appliqués.</p>` : "";
+  pop.innerHTML = `
+    ${kindNote}
+    ${opts.allowUnchanged || opts.allowOff ? `<div class="state">
+      ${opts.allowOff ? `<button class="btn small ${opts.value === "off" ? "sel" : ""}" data-v="off">Éteinte</button>` : ""}
+      ${opts.allowUnchanged ? `<button class="btn small ${opts.value === null ? "sel" : ""}" data-v="__unch">Inchangée</button>` : ""}
+    </div>` : ""}
+    <h4>Couleurs</h4>
+    <div class="grid">${PRESETS.map(c => `<div class="swatch ${c === opts.value ? "sel" : ""}" data-v="${c}" style="background:${c}" title="${c}"></div>`).join("")}</div>
+    <h4>Blancs</h4>
+    <div class="whites">${WHITES.map(([k, n]) => `<button data-v="${k}" class="${k === opts.value ? "sel" : ""}" style="background:${kelvinToHex(k)}">${n}<br>${k}</button>`).join("")}</div>
+    <div class="custom"><input type="color" value="${opts.value && !isK(opts.value) && opts.value !== "off" ? opts.value : "#ff7a00"}"><span class="muted small">Couleur perso</span>
+      <span class="spacer"></span><button class="btn small primary" data-custom>OK</button></div>
+    ${opts.allowUnchanged ? `<div class="slider" style="margin-top:10px">Luminosité <input type="range" min="1" max="100" value="${bright}"> <b>${bright}%</b></div>` : ""}`;
+  pop.classList.remove("hidden");
+  const r = anchor.getBoundingClientRect(), w = 292, h = pop.offsetHeight;
+  let left = Math.min(window.innerWidth - w - 10, Math.max(10, r.left));
+  let top = r.bottom + 8; if (top + h > window.innerHeight - 10) top = Math.max(10, r.top - h - 8);
+  pop.style.left = left + "px"; pop.style.top = top + "px";
+  const done = (v) => { close(); onPick(v, { brightness: bright }); };
+  pop.querySelectorAll("[data-v]").forEach(b => b.onclick = () => done(b.dataset.v === "__unch" ? null : b.dataset.v));
+  pop.querySelector("[data-custom]").onclick = () => done(pop.querySelector("input[type=color]").value);
+  const rg = pop.querySelector("input[type=range]");
+  if (rg) rg.oninput = () => { bright = Number(rg.value); rg.nextElementSibling.textContent = bright + "%"; };
+  function close() { pop.classList.add("hidden"); document.removeEventListener("mousedown", outside, true); document.removeEventListener("keydown", onKey); popClose = null; }
+  function outside(e) { if (!pop.contains(e.target) && !anchor.contains(e.target)) close(); }
+  function onKey(e) { if (e.key === "Escape") close(); }
+  popClose?.(); popClose = close;
+  setTimeout(() => { document.addEventListener("mousedown", outside, true); document.addEventListener("keydown", onKey); });
+}
+
+// =====================================================================================
+// Onglet Lampes
+// =====================================================================================
+function renderLamps() {
+  const all = lamps();
+  $("#lampList").innerHTML = all.length ? all.map((l, i) => `
+    <div class="lamp-row" data-id="${esc(l.id)}" style="${l.hidden ? "opacity:.5" : ""}">
+      <div class="glass"></div>
+      <div class="info">
+        <input class="alias" value="${esc(l.name)}" title="Renommer (nom Matter : ${esc(l.matterName)})">
+        <div class="small muted" style="padding-left:7px">
+          <span class="badge">${KIND[l.kind] || l.kind}</span>
+          ${l.virtual ? '<span class="badge">démo</span>' : ""}
+          ${l.reachable === false ? '<span class="badge bad">injoignable</span>' : ""}
+          ${l.name !== l.matterName ? `<span>· ${esc(l.matterName)}</span>` : ""}
+        </div>
+      </div>
+      <button class="iconbtn" data-a="try" title="Tester une couleur">${ICON.flash}</button>
+      <button class="iconbtn" data-a="identify" title="Faire clignoter">${ICON.eye}</button>
+      <button class="iconbtn" data-a="up" title="Monter" ${i === 0 ? "disabled" : ""}>${ICON.up}</button>
+      <button class="iconbtn" data-a="down" title="Descendre" ${i === all.length - 1 ? "disabled" : ""}>${ICON.down}</button>
+      <label class="toggle" title="Inclure dans les shows"><input type="checkbox" ${l.hidden ? "" : "checked"}><span class="sw"></span></label>
+    </div>`).join("") : `<p class="muted">Aucune lampe. Appaire ton pont Hue avec le code Matter (à droite).</p>`;
+
+  document.querySelectorAll(".lamp-row[data-id]").forEach(row => {
+    const id = row.dataset.id, enc = encodeURIComponent(id);
+    row.querySelector(".alias").onchange = e => api("PATCH", `/api/lamps/${enc}`, { alias: e.target.value.trim() });
+    row.querySelector("input[type=checkbox]").onchange = e => api("PATCH", `/api/lamps/${enc}`, { hidden: !e.target.checked });
+    row.querySelectorAll("[data-a]").forEach(b => b.onclick = () => {
+      const a = b.dataset.a;
+      if (a === "identify") return api("POST", `/api/lamps/${enc}/identify`).catch(e => toast(e.message, true));
+      if (a === "try") return openPicker(b, { value: null, allowOff: true }, v => api("POST", "/api/direct", { ids: [id], state: v === "off" ? { on: false } : { on: true, color: v, brightness: 90 }, fade: 0.5 }).catch(e => toast(e.message, true)));
+      const ids = all.map(l => l.id), i = ids.indexOf(id), j = a === "up" ? i - 1 : i + 1;
+      if (j < 0 || j >= ids.length) return;
+      [ids[i], ids[j]] = [ids[j], ids[i]];
+      api("POST", "/api/lamps/order", { ids });
+    });
+  });
+  paintBulbs(0);
+}
+
+function renderNodes() {
+  const nodes = S.st.nodes;
+  $("#nodeList").innerHTML = nodes.length ? nodes.map(n => {
+    const count = lamps().filter(l => l.nodeId === n.id).length;
+    return `<div class="node-row"><div style="flex:1"><b>${esc(n.name)}</b><div class="small muted">${esc(n.state)} · ${count} lampe${count > 1 ? "s" : ""}</div></div>
+      <button class="btn small danger" data-id="${esc(n.id)}" title="Retire uniquement ce contrôleur ; l'appareil reste dans l'app Maison">Retirer</button></div>`;
+  }).join("") : `<p class="muted small">Aucun appareil appairé.</p>`;
+  document.querySelectorAll("#nodeList [data-id]").forEach(b => b.onclick = () => {
+    if (confirm("Retirer cet appareil du show ? (il reste dans l'app Maison)")) api("DELETE", `/api/nodes/${encodeURIComponent(b.dataset.id)}`).catch(e => toast(e.message, true));
+  });
+  const pairing = S.st.matter.pairing;
+  $("#pairBtn").disabled = pairing || !S.st.matter.ready;
+  $("#pairBtn").textContent = pairing ? "Appairage…" : "Appairer";
+}
+$("#pairBtn").onclick = async () => {
+  const code = $("#pairCode").value.trim();
+  if (!code) return toast("Colle d'abord le code d'appairage", true);
+  try { await api("POST", "/api/pair", { code }); toast("Appairage lancé… (jusqu'à une minute)"); $("#pairCode").value = ""; }
+  catch (e) { toast(e.message, true); }
+};
+
+// =====================================================================================
+// Réglages & journal
+// =====================================================================================
+function renderSettings() {
+  const s = S.st.settings;
+  $("#rate").value = s.rate; $("#rateVal").textContent = s.rate; $("#demo").checked = !!s.demo;
+}
+$("#rate").oninput = e => $("#rateVal").textContent = e.target.value;
+$("#rate").onchange = e => api("PATCH", "/api/settings", { rate: Number(e.target.value) });
+$("#demo").onchange = e => api("PATCH", "/api/settings", { demo: e.target.checked });
+function renderLog() {
+  const box = $("#log");
+  box.innerHTML = S.st.logs.slice(-80).map(l => `<div class="${l.level}">${new Date(l.t).toLocaleTimeString("fr-FR")} ${esc(l.msg)}</div>`).join("") || '<span class="muted">Rien pour l\'instant.</span>';
+  box.scrollTop = box.scrollHeight;
+}
+
+// =====================================================================================
+// Navigation & actions globales
+// =====================================================================================
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
+  S.tab = b.dataset.tab;
+  document.querySelectorAll(".tabs button").forEach(x => x.classList.toggle("on", x === b));
+  ["shows", "lamps", "music", "settings"].forEach(t => $("#tab-" + t).classList.toggle("hidden", t !== S.tab));
+  if (S.tab === "music") { loadPlaylists(); loadAirplay(); }
+});
+$("#allOff").onclick = () => api("POST", "/api/direct", { state: { on: false }, fade: 1 }).catch(e => toast(e.message, true));
+$("#allWarm").onclick = () => api("POST", "/api/direct", { state: { on: true, color: "2700K", brightness: 70 }, fade: 1 }).catch(e => toast(e.message, true));
+document.addEventListener("keydown", e => {
+  if (e.code === "Space" && S.tab === "shows" && S.show && !["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName)) { e.preventDefault(); togglePlay(); }
+});
+window.addEventListener("beforeunload", () => {
+  if (S.saveTimer && S.show) fetch(`/api/shows/${encodeURIComponent(S.show.id)}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(S.show), keepalive: true });
+});
+
+// =====================================================================================
+// Onglet Musique
+// =====================================================================================
+const mmss = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+const INTENSITY_LABEL = { auto: "auto", doux: "douce", moyen: "moyenne", fort: "forte", aucun: "aucune" };
+
+function renderMusic() {
+  const m = S.st?.music; if (!m) return;
+  const st = m.state, sy = m.sync, tr = st.track;
+  const box = $("#musicNow");
+  const coverUrl = sy.hasCover && sy.trackKey ? `/api/music/cover?key=${encodeURIComponent(sy.trackKey)}` : null;
+  let html = "";
+  if (!m.available) html = `<p class="muted">L'app Musique n'est accessible que lorsque ce logiciel tourne sur un Mac.</p>`;
+  else if (!tr) html = `<div class="now"><div class="art">♪</div><div><div class="t">${st.status === "Musique fermée" ? "L'app Musique est fermée" : "Rien en lecture"}</div><div class="muted small">Lance une playlist ci-dessous ou dans l'app Musique.</div></div></div>`;
+  else html = `<div class="now"><div class="art">${coverUrl ? `<img src="${coverUrl}" alt="">` : (st.playing ? "▶" : "❚❚")}</div><div style="min-width:0">
+      <div class="t">${esc(tr.name)}</div><div class="muted small">${esc(tr.artist)}${st.playlist ? ` · playlist « ${esc(st.playlist)} »` : ""}${tr.genre ? ` · ${esc(tr.genre)}` : ""}${st.playing ? "" : " · en pause"}</div></div></div>
+    <div class="prog"><div id="musicProg"></div></div><div class="times"><span id="musicPos">0:00</span><span>${tr.duration ? mmss(tr.duration) : ""}</span></div>
+    <div class="beatline"><span class="beats" id="beatDots"><i></i><i></i><i></i><i></i></span>
+      <span>${sy.tempo ? `<b>${Math.round(sy.tempo.bpm)} BPM</b> · ${esc(sy.tempo.source)}` : ""}</span></div>`;
+  if (m.error) html += `<p class="music-err">⚠ ${esc(m.error)}</p>`;
+  const sig = html;
+  if (box.dataset.sig !== sig) { box.innerHTML = html; box.dataset.sig = sig; }
+
+  $("#syncOn").checked = sy.enabled;
+  const opts = [`<option value="auto">Automatique : selon la musique (pochette, genre, Noël, Halloween)</option>`]
+    .concat((S.st.shows || []).map(s => `<option value="${esc(s.id)}">Show « ${esc(s.name)} » (rythme de la musique)</option>`));
+  const sel = $("#syncChoice");
+  if (sel.dataset.sig !== opts.join("")) { sel.innerHTML = opts.join(""); sel.dataset.sig = opts.join(""); }
+  sel.value = sy.choice;
+  $("#rhythmIntensity").value = sy.intensity || "auto";
+
+  let status;
+  if (!tr) status = "En attente d'un morceau dans l'app Musique.";
+  else {
+    const sw = sy.palette?.length ? `<span class="swatches">${sy.palette.map(c => `<i style="background:${disp(c)}"></i>`).join("")}</span>` : "";
+    status = sy.auto
+      ? `Couleurs : ${sw}<span class="muted">${esc(sy.reason)}</span>`
+      : `Couleurs du show <b>${esc(sy.showName)}</b> <span class="muted">(${esc(sy.reason)})</span>`;
+    if (sy.tempo) {
+      status += `<br>Rythme : <b>${Math.round(sy.tempo.bpm)} BPM</b> <span class="muted">(${esc(sy.tempo.source)})</span>`;
+      if (sy.styleLabel) status += ` · style ${esc(sy.styleLabel)}`;
+      if (sy.lampsPerBeat && sy.enabled) status += ` · ${sy.lampsPerBeat} lampe${sy.lampsPerBeat > 1 ? "s" : ""} par temps`;
+    }
+    if (!sy.tempo?.calibrated) status += `<br><span class="muted">Pas encore calé sur les temps : active le micro ci-dessous (ou tape le tempo).</span>`;
+    else status += `<br>✓ Calé sur les temps de ce morceau.`;
+    if (!sy.enabled) status += `<br><span class="muted">Synchro désactivée : active-la pour que les lumières suivent.</span>`;
+  }
+  $("#syncStatus").innerHTML = status;
+  $("#saveAuto").classList.toggle("hidden", !(tr && sy.auto));
+  $("#lead").value = m.lead; $("#leadVal").textContent = `${m.lead > 0 ? "+" : ""}${Number(m.lead).toFixed(2)} s`;
+
+  // analyses à faire dans la page pour ce morceau (une fois) : tempo de l'extrait, palette de la pochette
+  if (sy.trackKey && sy.needs) Analyzer.maybeRun(sy.trackKey, sy.needs);
+}
+
+// animation : position et battement (estimés entre deux lectures de l'app Musique)
+function beatLoop() {
+  const m = S.st?.music;
+  if (m && S.tab === "music" && m.state.track) {
+    const st = m.state, t = m.state.track;
+    const pos = st.playing ? st.position + (Date.now() - st.at) / 1000 : st.position;
+    const pr = $("#musicProg"); if (pr && t.duration) pr.style.width = `${Math.min(100, (pos / t.duration) * 100)}%`;
+    const pe = $("#musicPos"); if (pe) pe.textContent = mmss(Math.max(0, pos));
+    const tp = m.sync.tempo, dots = document.querySelectorAll("#beatDots i");
+    if (tp && dots.length) {
+      const beat = (pos + Number(m.lead || 0) - tp.phase) / (60 / tp.bpm);
+      const n = Math.floor(beat), frac = beat - n;
+      dots.forEach((d, i) => d.classList.toggle("on", st.playing && ((n % 4) + 4) % 4 === i && frac < 0.35));
+    }
+  }
+  const lv = $("#micLevel"); if (lv) lv.style.width = Mic.on ? `${Math.min(100, Mic.levelPct)}%` : "0";
+  requestAnimationFrame(beatLoop);
+}
+
+document.querySelectorAll("[data-cmd]").forEach(b => b.onclick = () => api("POST", "/api/music/command", { action: b.dataset.cmd }).catch(e => toast(e.message, true)));
+$("#syncOn").onchange = e => api("POST", "/api/music/sync", { enabled: e.target.checked }).catch(err => toast(err.message, true));
+$("#syncChoice").onchange = e => api("POST", "/api/music/sync", { choice: e.target.value });
+$("#rhythmIntensity").onchange = e => api("PATCH", "/api/settings", { rhythmIntensity: e.target.value });
+$("#lead").oninput = e => $("#leadVal").textContent = `${e.target.value > 0 ? "+" : ""}${Number(e.target.value).toFixed(2)} s`;
+$("#lead").onchange = e => api("PATCH", "/api/settings", { musicLead: Number(e.target.value) });
+$("#resetCalib").onclick = () => api("DELETE", "/api/music/calibration").then(() => toast("Calage oublié pour ce morceau"));
+$("#saveAuto").onclick = async () => {
+  try { const s = await api("POST", "/api/music/save-auto"); toast(`Show « ${s.name} » enregistré`); } catch (e) { toast(e.message, true); }
+};
+
+async function loadPlaylists() {
+  try {
+    const list = await api("GET", "/api/music/playlists");
+    const sel = $("#playlistSel"), cur = sel.value;
+    sel.innerHTML = `<option value="">Choisir une playlist…</option>` + list.map(n => `<option>${esc(n)}</option>`).join("");
+    sel.value = cur;
+  } catch {}
+}
+$("#playPlaylist").onclick = () => {
+  const n = $("#playlistSel").value; if (!n) return toast("Choisis d'abord une playlist", true);
+  api("POST", "/api/music/command", { action: "playlist", arg: n }).catch(e => toast(e.message, true));
+};
+async function loadAirplay() {
+  const box = $("#airplayList");
+  try {
+    const list = await api("GET", "/api/music/airplay");
+    if (!list.length) { box.innerHTML = "Aucune sortie trouvée (ouvre l'app Musique)."; return; }
+    const icon = k => /homepod/i.test(k) ? "◉" : /computer|ordinateur/i.test(k) ? "▭" : "◎";
+    box.innerHTML = list.map(d => `<label class="ap-row"><input type="checkbox" value="${esc(d.name)}" ${d.selected ? "checked" : ""} ${d.available ? "" : "disabled"}>
+      <span>${icon(d.kind)} ${esc(d.name)}</span>${d.available ? "" : '<span class="badge">indisponible</span>'}</label>`).join("");
+    box.querySelectorAll("input").forEach(i => i.onchange = async () => {
+      const names = [...box.querySelectorAll("input:checked")].map(x => x.value);
+      if (!names.length) { i.checked = true; return toast("Garde au moins une sortie", true); }
+      try { await api("POST", "/api/music/airplay", { names }); } catch (e) { toast(e.message, true); }
+      loadAirplay();
+    });
+  } catch (e) { box.textContent = e.message; }
+}
+$("#airplayRefresh").onclick = loadAirplay;
+
+// taper le tempo
+let taps = [], tapTimer;
+function tap() {
+  taps.push(Date.now());
+  const b = $("#tapBtn"); b.classList.add("hit"); setTimeout(() => b.classList.remove("hit"), 90);
+  b.textContent = `${taps.length} temps…`;
+  clearTimeout(tapTimer);
+  tapTimer = setTimeout(async () => {
+    const t = taps; taps = [];
+    b.textContent = "Taper le tempo ici";
+    if (t.length < 4) return toast("Tape au moins 4 temps (8 c'est mieux)", true);
+    try { const r = await api("POST", "/api/music/tap", { taps: t }); toast(`Tempo calé : ${r.bpm} BPM`); }
+    catch (e) { toast(e.message, true); }
+  }, 1600);
+}
+$("#tapBtn").addEventListener("pointerdown", e => { e.preventDefault(); tap(); });
+document.addEventListener("keydown", e => {
+  if (S.tab === "music" && (e.key === "t" || e.key === "T") && !["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName)) tap();
+});
+
+// =====================================================================================
+// Analyse audio (dans la page) : FFT, détection d'attaques, tempo, calage par le micro
+// =====================================================================================
+const DSP = {
+  fft(re, im) {
+    const n = re.length;
+    for (let i = 1, j = 0; i < n; i++) {
+      let bit = n >> 1;
+      for (; j & bit; bit >>= 1) j ^= bit;
+      j ^= bit;
+      if (i < j) { let t = re[i]; re[i] = re[j]; re[j] = t; t = im[i]; im[i] = im[j]; im[j] = t; }
+    }
+    for (let len = 2; len <= n; len <<= 1) {
+      const ang = (-2 * Math.PI) / len, wr = Math.cos(ang), wi = Math.sin(ang), half = len >> 1;
+      for (let i = 0; i < n; i += len) {
+        let cr = 1, ci = 0;
+        for (let j = 0; j < half; j++) {
+          const a = i + j, b = a + half;
+          const br = re[b] * cr - im[b] * ci, bi = re[b] * ci + im[b] * cr;
+          re[b] = re[a] - br; im[b] = im[a] - bi; re[a] += br; im[a] += bi;
+          const t = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = t;
+        }
+      }
+    }
+  },
+  /** Renvoie f(frame) -> { flux, rms } : « flux spectral » (attaques), basses renforcées. */
+  makeOnset(sampleRate, N) {
+    const win = Float32Array.from({ length: N }, (_, i) => 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (N - 1)));
+    const re = new Float32Array(N), im = new Float32Array(N), prev = new Float32Array(N / 2);
+    const maxBin = Math.min(N / 2, Math.round((8000 / sampleRate) * N)), lowBin = Math.max(2, Math.round((180 / sampleRate) * N));
+    return frame => {
+      let rms = 0;
+      for (let i = 0; i < N; i++) { const v = frame[i] || 0; re[i] = v * win[i]; im[i] = 0; rms += v * v; }
+      DSP.fft(re, im);
+      let flux = 0;
+      for (let k = 1; k < maxBin; k++) {
+        const mag = Math.log1p(1000 * Math.hypot(re[k], im[k]));
+        const d = mag - prev[k];
+        if (d > 0) flux += k <= lowBin ? 3 * d : d;
+        prev[k] = mag;
+      }
+      return { flux, rms: Math.sqrt(rms / N) };
+    };
+  },
+  /** Retire la moyenne locale (~0,4 s) et garde la partie positive : ne restent que les attaques. */
+  clean(env, fps) {
+    const w = Math.max(1, Math.round(0.4 * fps)), n = env.length, out = new Float32Array(n), pre = new Float64Array(n + 1);
+    for (let i = 0; i < n; i++) pre[i + 1] = pre[i] + env[i];
+    for (let i = 0; i < n; i++) { const a = Math.max(0, i - w), b = Math.min(n, i + w + 1); out[i] = Math.max(0, env[i] - (pre[b] - pre[a]) / (b - a)); }
+    return out;
+  },
+  /** Tempo par autocorrélation de l'enveloppe des attaques (préférence douce autour de 120 BPM). */
+  tempo(env, fps) {
+    const n = env.length, minL = Math.max(2, Math.floor((fps * 60) / 185)), maxL = Math.ceil((fps * 60) / 62);
+    const top = Math.min(n - 2, 2 * maxL + 2), ac = new Float64Array(top + 2);
+    for (let L = minL - 1; L <= top; L++) { let s = 0; for (let i = 0; i + L < n; i++) s += env[i] * env[i + L]; ac[L] = s / (n - L); }
+    let best = -Infinity, bestL = minL;
+    for (let L = minL; L <= maxL; L++) {
+      const bpm = (60 * fps) / L, w = Math.exp(-0.5 * (Math.log2(bpm / 120) / 0.9) ** 2);
+      const sc = (ac[L] + 0.5 * (ac[2 * L] || 0)) * w;
+      if (sc > best) { best = sc; bestL = L; }
+    }
+    const y0 = ac[bestL - 1] || 0, y1 = ac[bestL], y2 = ac[bestL + 1] || 0, den = y0 - 2 * y1 + y2;
+    const off = den ? Math.max(-0.5, Math.min(0.5, (0.5 * (y0 - y2)) / den)) : 0;
+    let bpm = (60 * fps) / (bestL + off);
+    while (bpm > 180) bpm /= 2;
+    while (bpm < 85) bpm *= 2;
+    return Math.round(bpm * 10) / 10;
+  },
+  /** Affine le tempo (±1,5 BPM, pas de 0,02) : période qui aligne le mieux toutes les attaques. t = instants en s. */
+  refine(env, t, bpm) {
+    let best = bpm, bestR = -1;
+    for (let b = bpm - 1.5; b <= bpm + 1.5; b += 0.02) {
+      const w = (2 * Math.PI * b) / 60;
+      let sx = 0, sy = 0;
+      for (let i = 0; i < env.length; i++) if (env[i]) { sx += env[i] * Math.cos(w * t[i]); sy += env[i] * Math.sin(w * t[i]); }
+      const R = sx * sx + sy * sy;
+      if (R > bestR) { bestR = R; best = b; }
+    }
+    if (Math.abs(best - Math.round(best)) < 0.2) best = Math.round(best); // la plupart des morceaux ont un tempo entier
+    return Math.round(best * 100) / 100;
+  },
+};
+
+// Analyses ponctuelles d'un morceau : tempo de l'extrait (Apple) et palette de la pochette
+const Analyzer = {
+  done: new Set(),
+  async maybeRun(key, needs) {
+    if (needs.tempo && !this.done.has(key + "|t")) { this.done.add(key + "|t"); this.previewTempo(key).catch(() => {}); }
+    if (needs.palette && !this.done.has(key + "|p")) { this.done.add(key + "|p"); this.coverPalette(key).catch(() => {}); }
+  },
+  async previewTempo(key) {
+    const r = await fetch(`/api/music/preview?key=${encodeURIComponent(key)}`);
+    if (!r.ok) return;
+    const buf = await r.arrayBuffer();
+    const Ctx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    const ctx = new Ctx(1, 2, 44100);
+    const audio = await new Promise((res, rej) => { const p = ctx.decodeAudioData(buf, res, rej); if (p && p.then) p.then(res, rej); });
+    const ch = audio.numberOfChannels, len = audio.length, data = new Float32Array(len);
+    for (let c = 0; c < ch; c++) { const d = audio.getChannelData(c); for (let i = 0; i < len; i++) data[i] += d[i] / ch; }
+    const N = 1024, H = 512, onset = DSP.makeOnset(audio.sampleRate, N), env = [];
+    for (let i = 0; i + N <= len; i += H) env.push(onset(data.subarray(i, i + N)).flux);
+    const fps = audio.sampleRate / H, clean = DSP.clean(Float32Array.from(env), fps);
+    const bpm = DSP.refine(clean, clean.map((_, i) => i / fps), DSP.tempo(clean, fps));
+    await api("POST", "/api/music/analysis", { key, bpm });
+  },
+  async coverPalette(key) {
+    const img = new Image();
+    img.src = `/api/music/cover?key=${encodeURIComponent(key)}`;
+    await img.decode();
+    const c = document.createElement("canvas"); c.width = c.height = 48;
+    const g = c.getContext("2d"); g.drawImage(img, 0, 0, 48, 48);
+    const px = g.getImageData(0, 0, 48, 48).data, pts = [];
+    for (let i = 0; i < px.length; i += 4) {
+      const r = px[i] / 255, gg = px[i + 1] / 255, b = px[i + 2] / 255, mx = Math.max(r, gg, b), mn = Math.min(r, gg, b);
+      const s = mx ? (mx - mn) / mx : 0;
+      if (s > 0.28 && mx > 0.22) pts.push([r, gg, b, s * mx]);
+    }
+    let palette;
+    if (pts.length < 60) palette = ["2700K", "#ffb36b", "4000K"]; // pochette en noir et blanc : blancs chauds
+    else {
+      // k-moyennes (k = 5)
+      let cen = Array.from({ length: 5 }, (_, i) => pts[Math.floor(((i + 0.5) * pts.length) / 5)].slice(0, 3));
+      let asg = new Array(pts.length).fill(0);
+      for (let it = 0; it < 10; it++) {
+        pts.forEach((p, i) => { let bd = 9, bi = 0; cen.forEach((q, j) => { const d = (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 + (p[2] - q[2]) ** 2; if (d < bd) { bd = d; bi = j; } }); asg[i] = bi; });
+        cen = cen.map((q, j) => { const m = pts.filter((_, i) => asg[i] === j); return m.length ? [0, 1, 2].map(k => m.reduce((a, p) => a + p[k], 0) / m.length) : q; });
+      }
+      let groups = cen.map((q, j) => { const m = pts.filter((_, i) => asg[i] === j); return { q, w: m.reduce((a, p) => a + p[3], 0) }; }).filter(x => x.w > 0).sort((a, b) => b.w - a.w);
+      groups = groups.filter(g => g.w >= 0.12 * groups[0].w); // ignore les petites zones (bords, mélanges)
+      const hues = [];
+      palette = [];
+      for (const { q } of groups) {
+        // couleur « lumière » : même teinte, saturée et à pleine luminosité
+        const [r, gg, b] = q, mx = Math.max(r, gg, b), mn = Math.min(r, gg, b), d = mx - mn;
+        let h = 0;
+        if (d) h = mx === r ? ((gg - b) / d) % 6 : mx === gg ? (b - r) / d + 2 : (r - gg) / d + 4;
+        h = (h * 60 + 360) % 360;
+        if (hues.some(x => Math.min(Math.abs(x - h), 360 - Math.abs(x - h)) < 22)) continue;
+        hues.push(h);
+        const s = Math.max(0.65, d / mx), f = n => { const k = (n + h / 60) % 6; return 1 - s * Math.max(0, Math.min(k, 4 - k, 1)); };
+        palette.push("#" + [f(5), f(3), f(1)].map(v => Math.round(v * 255).toString(16).padStart(2, "0")).join(""));
+        if (palette.length === 4) break;
+      }
+      if (palette.length === 1) palette.push("2700K");
+    }
+    await api("POST", "/api/music/analysis", { key, palette });
+  },
+};
+
+// Micro : détecte les attaques en direct, en déduit le calage des temps et l'énergie
+const Mic = {
+  on: false, env: [], times: [], rms: [], levelPct: 0, good: 0, last: null,
+  async start() {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+    const AC = window.AudioContext || window.webkitAudioContext;
+    this.ctx = new AC();
+    await this.ctx.resume();
+    this.stream = stream;
+    const N = 1024, src = this.ctx.createMediaStreamSource(stream), proc = this.ctx.createScriptProcessor(N, 1, 1);
+    const onset = DSP.makeOnset(this.ctx.sampleRate, N), zero = this.ctx.createGain();
+    zero.gain.value = 0;
+    const lat = ((this.ctx.baseLatency || 0) + N / this.ctx.sampleRate / 2) * 1000 + 15;
+    proc.onaudioprocess = e => {
+      const { flux, rms } = onset(e.inputBuffer.getChannelData(0));
+      this.env.push(flux); this.times.push(Date.now() - lat); this.rms.push(rms);
+      if (this.env.length > 700) { this.env.shift(); this.times.shift(); this.rms.shift(); }
+      this.levelPct = Math.min(100, rms * 400);
+    };
+    src.connect(proc); proc.connect(zero); zero.connect(this.ctx.destination);
+    this.nodes = [src, proc, zero];
+    this.on = true;
+    this.timer = setInterval(() => this.analyze(), 2000);
+    this.etimer = setInterval(() => this.energy(), 500);
+    this.setStatus("Écoute en cours… (quelques secondes de musique suffisent)");
+  },
+  stop() {
+    this.on = false; clearInterval(this.timer); clearInterval(this.etimer);
+    try { this.stream?.getTracks().forEach(t => t.stop()); this.ctx?.close(); } catch {}
+    this.env = []; this.times = []; this.rms = []; this.levelPct = 0;
+    this.setStatus("Micro coupé.");
+  },
+  setStatus(t) { const el = $("#micStatus"); if (el) el.textContent = t; },
+  reset() { this.env = []; this.times = []; this.rms = []; this.good = 0; this.last = null; },
+  analyze() {
+    const m = S.st?.music, st = m?.state, sy = m?.sync;
+    if (!st?.playing || !sy?.trackKey) { this.setStatus("Micro prêt : en attente de musique dans l'app Musique."); return; }
+    if (this.key !== sy.trackKey) { this.key = sy.trackKey; this.reset(); this.ref = null; return; }
+    // la lecture doit avoir été continue (pas de saut dans le morceau) pendant la fenêtre écoutée
+    if (this.ref && this.ref.at !== st.at) {
+      const predicted = this.ref.position + (st.at - this.ref.at) / 1000;
+      if (Math.abs(predicted - st.position) > 0.8) this.reset();
+    }
+    this.ref = { position: st.position, at: st.at };
+    const posAt = t => st.position + (t - st.at) / 1000;
+    const n = this.env.length;
+    if (n < 250) { this.setStatus(`Écoute… ${Math.round((n / 700) * 100)} %`); return; }
+    const fps = (n - 1) / ((this.times[n - 1] - this.times[0]) / 1000);
+    const env = DSP.clean(Float32Array.from(this.env), fps);
+    // tempo : celui du serveur s'il est fiable (base, extrait, calage), sinon mesuré au micro
+    const bpm = sy.tempo && !/estim/.test(sy.tempo.source) ? sy.tempo.bpm : DSP.refine(env, this.times.map(posAt), DSP.tempo(env, fps));
+    const period = 60 / bpm;
+    let sx = 0, syy = 0, se = 0;
+    for (let i = 0; i < n; i++) {
+      const a = (2 * Math.PI * posAt(this.times[i])) / period;
+      sx += env[i] * Math.cos(a); syy += env[i] * Math.sin(a); se += env[i];
+    }
+    if (!se) return;
+    const conf = Math.hypot(sx, syy) / se;
+    const phase = ((((Math.atan2(syy, sx) / (2 * Math.PI)) * period) % period) + period) % period;
+    const near = this.last && Math.abs(this.last.bpm - bpm) < 0.6 && (() => { const d = Math.abs(this.last.phase - phase) % period; return Math.min(d, period - d) < 0.07; })();
+    this.good = conf > 0.1 && near ? this.good + 1 : conf > 0.1 ? 1 : 0;
+    this.last = { bpm, phase, conf };
+    if (this.good >= 2) {
+      api("POST", "/api/music/calibrate", { key: sy.trackKey, bpm, phase, confidence: conf }).catch(() => {});
+      this.setStatus(`✓ Calé sur les temps : ${Math.round(bpm)} BPM (fiabilité ${Math.round(conf * 100)} %). Le micro continue d'écouter pour rester calé.`);
+    } else this.setStatus(conf > 0.1 ? `Presque calé… (${Math.round(bpm)} BPM)` : "Le rythme est difficile à entendre : monte un peu le son ou rapproche le Mac des enceintes.");
+  },
+  energy() {
+    const n = this.rms.length;
+    if (n < 100 || !S.st?.music?.sync?.enabled) return;
+    const short = this.rms.slice(-47).reduce((a, b) => a + b, 0) / Math.min(47, n);
+    const long = this.rms.reduce((a, b) => a + b, 0) / n;
+    const level = long ? Math.max(0, Math.min(1, (short / long - 0.6) / 0.8)) : 0.5;
+    fetch("/api/music/energy", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ level }) }).catch(() => {});
+  },
+};
+$("#micOn").onchange = async e => {
+  try {
+    if (e.target.checked) { await Mic.start(); try { localStorage.setItem("micOn", "1"); } catch {} }
+    else { Mic.stop(); try { localStorage.removeItem("micOn"); } catch {} }
+  } catch (err) {
+    e.target.checked = false;
+    Mic.setStatus("Micro refusé ou indisponible : autorise le micro pour cette page dans Safari (Réglages du site web › Micro).");
+    toast("Micro indisponible : " + err.message, true);
+  }
+};
+
+requestAnimationFrame(beatLoop);
+connect();
+</script>
+</body>
+</html>
