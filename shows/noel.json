@@ -1,0 +1,787 @@
+{
+  "id": "noel",
+  "name": "Noël enchanté",
+  "loop": true,
+  "speed": 1,
+  "tempo": {
+    "bpm": 120
+  },
+  "music": {
+    "match": [
+      "noel",
+      "christmas",
+      "xmas",
+      "navidad",
+      "santa",
+      "jingle",
+      "fetes",
+      "sapin",
+      "neige",
+      "snow",
+      "rudolph",
+      "reindeer",
+      "renne",
+      "mistletoe",
+      "sleigh",
+      "traineau",
+      "winter wonderland",
+      "last christmas",
+      "wonderful christmastime",
+      "feliz"
+    ]
+  },
+  "steps": [
+    {
+      "name": "Veillée aux bougies",
+      "duration": 8,
+      "fade": 4,
+      "mode": "all",
+      "all": {
+        "on": true,
+        "color": "2200K",
+        "brightness": 45
+      },
+      "palette": {
+        "colors": [
+          "#ff0000",
+          "#00d84a",
+          "#2b50ff"
+        ],
+        "brightness": 80,
+        "shift": 0
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Sucre d'orge",
+      "duration": 4,
+      "fade": 1,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff1020",
+          "6500K"
+        ],
+        "brightness": 85,
+        "shift": 0
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Sucre d'orge (bascule)",
+      "duration": 4,
+      "fade": 1,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff1020",
+          "6500K"
+        ],
+        "brightness": 85,
+        "shift": 1
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Sucre d'orge",
+      "duration": 4,
+      "fade": 1,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff1020",
+          "6500K"
+        ],
+        "brightness": 85,
+        "shift": 0
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Sucre d'orge (bascule)",
+      "duration": 4,
+      "fade": 1,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff1020",
+          "6500K"
+        ],
+        "brightness": 85,
+        "shift": 1
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Sapin illuminé",
+      "duration": 2,
+      "fade": 0.5,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#00c040",
+          "#ffb000",
+          "#00c040",
+          "#ff1020"
+        ],
+        "brightness": 90,
+        "shift": 0
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Sapin illuminé +1",
+      "duration": 2,
+      "fade": 0.5,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#00c040",
+          "#ffb000",
+          "#00c040",
+          "#ff1020"
+        ],
+        "brightness": 90,
+        "shift": 1
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Sapin illuminé +2",
+      "duration": 2,
+      "fade": 0.5,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#00c040",
+          "#ffb000",
+          "#00c040",
+          "#ff1020"
+        ],
+        "brightness": 90,
+        "shift": 2
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Sapin illuminé +3",
+      "duration": 2,
+      "fade": 0.5,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#00c040",
+          "#ffb000",
+          "#00c040",
+          "#ff1020"
+        ],
+        "brightness": 90,
+        "shift": 3
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "La neige tombe",
+      "duration": 4,
+      "fade": 2,
+      "mode": "all",
+      "all": {
+        "on": true,
+        "color": "6500K",
+        "brightness": 80
+      },
+      "palette": {
+        "colors": [
+          "#ff0000",
+          "#00d84a",
+          "#2b50ff"
+        ],
+        "brightness": 80,
+        "shift": 0
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Flocons",
+      "duration": 2,
+      "fade": 1,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "6500K",
+          "#7fd8ff"
+        ],
+        "brightness": 75,
+        "shift": 0
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Flocons (bascule)",
+      "duration": 2,
+      "fade": 1,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "6500K",
+          "#7fd8ff"
+        ],
+        "brightness": 75,
+        "shift": 1
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Flocons",
+      "duration": 2,
+      "fade": 1,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "6500K",
+          "#7fd8ff"
+        ],
+        "brightness": 75,
+        "shift": 0
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Flocons (bascule)",
+      "duration": 2,
+      "fade": 1,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "6500K",
+          "#7fd8ff"
+        ],
+        "brightness": 75,
+        "shift": 1
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Guirlande",
+      "duration": 2,
+      "fade": 0.3,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff1020",
+          "#00c040",
+          "#ffb000",
+          "#2b50ff"
+        ],
+        "brightness": 100,
+        "shift": 0
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Guirlande +1",
+      "duration": 2,
+      "fade": 0.3,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff1020",
+          "#00c040",
+          "#ffb000",
+          "#2b50ff"
+        ],
+        "brightness": 100,
+        "shift": 1
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Guirlande +2",
+      "duration": 2,
+      "fade": 0.3,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff1020",
+          "#00c040",
+          "#ffb000",
+          "#2b50ff"
+        ],
+        "brightness": 100,
+        "shift": 2
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Guirlande +3",
+      "duration": 2,
+      "fade": 0.3,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff1020",
+          "#00c040",
+          "#ffb000",
+          "#2b50ff"
+        ],
+        "brightness": 100,
+        "shift": 3
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Étoile du berger",
+      "duration": 4,
+      "fade": 1,
+      "mode": "all",
+      "all": {
+        "on": true,
+        "color": "#ffb000",
+        "brightness": 100
+      },
+      "palette": {
+        "colors": [
+          "#ff0000",
+          "#00d84a",
+          "#2b50ff"
+        ],
+        "brightness": 80,
+        "shift": 0
+      },
+      "lamps": {}
+    },
+    {
+      "name": "L'étoile scintille",
+      "duration": 2,
+      "fade": 0.5,
+      "mode": "all",
+      "all": {
+        "on": true,
+        "color": "#ffb000",
+        "brightness": 40
+      },
+      "palette": {
+        "colors": [
+          "#ff0000",
+          "#00d84a",
+          "#2b50ff"
+        ],
+        "brightness": 80,
+        "shift": 0
+      },
+      "lamps": {}
+    },
+    {
+      "name": "L'étoile brille",
+      "duration": 2,
+      "fade": 0.5,
+      "mode": "all",
+      "all": {
+        "on": true,
+        "color": "#ffb000",
+        "brightness": 100
+      },
+      "palette": {
+        "colors": [
+          "#ff0000",
+          "#00d84a",
+          "#2b50ff"
+        ],
+        "brightness": 80,
+        "shift": 0
+      },
+      "lamps": {}
+    },
+    {
+      "name": "L'étoile scintille",
+      "duration": 2,
+      "fade": 0.5,
+      "mode": "all",
+      "all": {
+        "on": true,
+        "color": "#ffb000",
+        "brightness": 40
+      },
+      "palette": {
+        "colors": [
+          "#ff0000",
+          "#00d84a",
+          "#2b50ff"
+        ],
+        "brightness": 80,
+        "shift": 0
+      },
+      "lamps": {}
+    },
+    {
+      "name": "L'étoile brille",
+      "duration": 2,
+      "fade": 0.5,
+      "mode": "all",
+      "all": {
+        "on": true,
+        "color": "#ffb000",
+        "brightness": 100
+      },
+      "palette": {
+        "colors": [
+          "#ff0000",
+          "#00d84a",
+          "#2b50ff"
+        ],
+        "brightness": 80,
+        "shift": 0
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Le traîneau passe",
+      "duration": 2,
+      "fade": 0.3,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff1020",
+          "off",
+          "off"
+        ],
+        "brightness": 100,
+        "shift": 0
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Le traîneau passe +1",
+      "duration": 2,
+      "fade": 0.3,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff1020",
+          "off",
+          "off"
+        ],
+        "brightness": 100,
+        "shift": 1
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Le traîneau passe +2",
+      "duration": 2,
+      "fade": 0.3,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff1020",
+          "off",
+          "off"
+        ],
+        "brightness": 100,
+        "shift": 2
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Le traîneau passe",
+      "duration": 2,
+      "fade": 0.3,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff1020",
+          "off",
+          "off"
+        ],
+        "brightness": 100,
+        "shift": 0
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Le traîneau passe +1",
+      "duration": 2,
+      "fade": 0.3,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff1020",
+          "off",
+          "off"
+        ],
+        "brightness": 100,
+        "shift": 1
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Le traîneau passe +2",
+      "duration": 2,
+      "fade": 0.3,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff1020",
+          "off",
+          "off"
+        ],
+        "brightness": 100,
+        "shift": 2
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Feu de cheminée",
+      "duration": 4,
+      "fade": 2,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff4500",
+          "#ff8c00",
+          "2200K"
+        ],
+        "brightness": 70,
+        "shift": 0
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Feu de cheminée +1",
+      "duration": 4,
+      "fade": 2,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff4500",
+          "#ff8c00",
+          "2200K"
+        ],
+        "brightness": 70,
+        "shift": 1
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Joyeux Noël !",
+      "duration": 2,
+      "fade": 0.2,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff1020",
+          "#00c040"
+        ],
+        "brightness": 100,
+        "shift": 0
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Joyeux Noël ! (bascule)",
+      "duration": 2,
+      "fade": 0.2,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff1020",
+          "#00c040"
+        ],
+        "brightness": 100,
+        "shift": 1
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Joyeux Noël !",
+      "duration": 2,
+      "fade": 0.2,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff1020",
+          "#00c040"
+        ],
+        "brightness": 100,
+        "shift": 0
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Joyeux Noël ! (bascule)",
+      "duration": 2,
+      "fade": 0.2,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff1020",
+          "#00c040"
+        ],
+        "brightness": 100,
+        "shift": 1
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Retour au calme",
+      "duration": 4,
+      "fade": 3,
+      "mode": "all",
+      "all": {
+        "on": true,
+        "color": "2700K",
+        "brightness": 50
+      },
+      "palette": {
+        "colors": [
+          "#ff0000",
+          "#00d84a",
+          "#2b50ff"
+        ],
+        "brightness": 80,
+        "shift": 0
+      },
+      "lamps": {}
+    }
+  ]
+}
