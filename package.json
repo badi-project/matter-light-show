@@ -1,0 +1,31 @@
+{
+  "name": "matter-light-show",
+  "version": "1.0.0",
+  "description": "Light shows on Matter lamps (Philips Hue via the Hue Bridge, or any Matter light) synced to Apple Music — local Matter controller + web interface, no cloud.",
+  "type": "module",
+  "main": "server.mjs",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "keywords": [
+    "matter",
+    "philips-hue",
+    "light-show",
+    "apple-music",
+    "smart-home",
+    "matter.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/badi-project/matter-light-show.git"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@matter/main": "0.17.9",
+    "@matter/nodejs": "0.17.9",
+    "@project-chip/matter.js": "0.17.9"
+  }
+}
