@@ -52,5 +52,13 @@ fi
 
 echo "💡 Démarrage… (garde cette fenêtre ouverte pendant le show, ferme-la pour tout arrêter)"
 (sleep 3; open "http://localhost:${PORT:-8321}") &
-# caffeinate empêche le Mac de se mettre en veille tant que le show tourne
-exec caffeinate -i node server.mjs
+# caffeinate empêche le Mac de se mettre en veille tant que le show tourne.
+# Après une mise à jour, le serveur peut demander à être relancé (code de sortie 75) : on le relance ici.
+export SHOW_LAUNCHER=1
+while true; do
+  caffeinate -i node server.mjs
+  code=$?
+  [ "$code" -eq 75 ] || exit "$code"
+  echo "🔄 Redémarrage du show…"
+  sleep 1
+done

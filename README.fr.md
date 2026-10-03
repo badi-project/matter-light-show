@@ -10,6 +10,8 @@ Pas de cloud, pas de compte, pas d'API constructeur : tout passe en local, en Ma
 
 ![Synchro musique](docs/screenshot-music.png)
 
+![Pièces](docs/screenshot-rooms.png)
+
 ```
  Mac (ce logiciel)  ──Matter / Wi-Fi──▶  Pont Hue  ──Zigbee──▶  lampes Hue
         ▲                                   ▲
@@ -83,12 +85,26 @@ Quatre shows sont fournis : **Soirée ambiance**, **Chenillard rouge & bleu**, *
 
 ## 4. Lumières synchronisées avec Apple Music
 
-Tout se passe dans l'onglet **Musique**. La musique reste dans Apple Music : joue-la avec l'app **Musique du Mac** (ou avec les boutons de l'onglet) et choisis tes HomePod ou enceintes dans **Sorties AirPlay**.
+Tout se passe dans l'onglet **Musique**. La musique reste dans Apple Music : joue-la avec l'app **Musique du Mac** (ou avec les boutons de l'onglet) et choisis tes HomePod ou enceintes dans **Sorties AirPlay**. Un curseur sous chaque enceinte cochée règle son volume, et **Volume général** celui de l'app Musique.
 
 1. Active **Synchroniser les lumières avec la musique**.
 2. Choisis d'où viennent les couleurs :
-   - **Automatique**, le réglage par défaut : les couleurs sont tirées de la **pochette** du morceau, ou de son genre si la pochette n'est pas disponible. Le style suit la musique : doux pour un morceau calme, plus vif pour un morceau rapide. Une playlist nommée « Noël » ou « Halloween » lance les shows dédiés.
+   - **Quatre modes automatiques** :
+     - **Auto complet** (par défaut) : les couleurs principales de la **pochette** (les visages, le gris et le noir sont ignorés), complétées par des couleurs d'**ambiance** choisies selon le genre, le style et le tempo. Un morceau calme a moins de couleurs, plus douces et plus chaudes ; un morceau énergique en a plus, saturées, avec une couleur d'« impact ».
+     - **Auto sobre** : les couleurs de la pochette et seulement 2 couleurs d'ambiance.
+     - **Auto pochette** : uniquement les couleurs de la pochette (lumières blanches si elle est en noir et blanc).
+     - **Auto nuances** : uniquement les couleurs de la pochette, déclinées en nuances (vif, clair, pastel, foncé, profond, teintes voisines). Le genre choisit la saveur : vives et teintes voisines pour la K-pop ou l'électro, profondes pour le jazz ou le R&B, douces et pastel pour l'indé ou le folk, contrastées pour le rock. Les nuances foncées sont jouées moins lumineuses.
+     - **Genre** : lu dans l'app Musique, chez Apple et chez Deezer (ou deviné à l'écoute s'il manque). Il choisit aussi le **motif des accents** : chaque temps pour la dance et la K-pop, temps 2 et 4 pour le rock et le R&B, « one drop » pour le reggae, respiration lente pour le classique ou l'ambient…
+     - **Style** (calme, groove, énergique) : selon le tempo, le genre et l'**énergie** mesurée sur l'extrait de 30 s (volume, attaques, brillance, netteté de la pulsation).
+     - En mode complet ou sobre, une playlist nommée « Noël » ou « Halloween » lance les shows dédiés.
+   - **Mes couleurs** : choisis jusqu'à 6 couleurs (pastels compris). Le logiciel les range pour qu'elles s'enchaînent joliment : en dégradé autour du cercle des couleurs (une couleur vive à côté de sa version pâle, les blancs là où le dégradé saute), ou en contraste pour un morceau énergique. **Diffuser maintenant** les pose tout de suite sur les lampes, sans musique (ambiance fixe).
    - **Un show** de ta liste : ses couleurs sont gardées, et c'est la musique qui donne le rythme.
+   - **Cohérence par pièce** (onglet Musique, sous les couleurs) : au lieu de mélanger les lampes de toute la maison,
+     - **Une ambiance par pièce** : une couleur dominante par pièce, avec des nuances proches entre ses lampes, qui change doucement ;
+     - **Vagues de pièce en pièce** : à chaque changement, la couleur part de la 1ʳᵉ pièce et avance dans l'ordre des pièces (ex. Salon → Cuisine → Chambre) ;
+     - **Une pièce entière d'un coup** : toutes les lampes d'une pièce changent ensemble, les pièces se répondent sur le rythme (c'est aussi ce qui passe le mieux avec la limite du pont) ;
+     - **Seulement les pièces où la musique passe** : le show ne joue que dans les pièces dont l'enceinte AirPlay est cochée ; les autres restent en blanc doux, s'éteignent ou ne bougent pas (au choix).
+   - **Les pièces** se règlent dans l'onglet **Lampes** (carte Pièces). Le pont Hue ne transmet pas ses pièces en Matter : clique **Proposer d'après les noms** (chevet → Chambre, Jardin 1/2/3 → Jardin, Cuisine 1/2 → Cuisine…), corrige la pièce de chaque lampe dans la liste, mets les pièces dans l'ordre des vagues avec les flèches et relie chaque pièce à ses enceintes. Si un jour le pont annonce ses pièces en Matter, elles sont utilisées automatiquement.
 3. **Le rythme** : à chaque temps de la musique, un groupe de lampes change. Les nouvelles couleurs se propagent en vague dans la pièce. Entre deux changements, les lampes battent la mesure en variant leur luminosité, plus fort sur le premier temps de chaque mesure. Le réglage **Intensité du rythme** passe de « douce » à « forte », ou à « aucune » pour garder seulement les couleurs.
 4. **Le calage sur les temps** se fait en deux temps :
    - le tempo du morceau est trouvé automatiquement, en mesurant l'extrait de 30 s fourni par Apple (ou à partir de bases publiques) ;
@@ -106,8 +122,9 @@ La première fois, macOS demande si le **Terminal peut contrôler « Musique »*
 - **Lampes blanches.** Une lampe blanche (White ambiance) n'applique que les blancs et la luminosité. Une ampoule simple n'applique que la luminosité.
 - **Pas accessible via Matter** : effets de dégradé des rubans *gradient*, synchro Hue Entertainment, scènes Hue.
 - **Le Mac doit rester allumé** pendant le show. Le lanceur empêche la mise en veille tant que la fenêtre Terminal est ouverte. Ferme cette fenêtre pour tout arrêter.
+- **Redémarrer** : le bouton **Réglages › Redémarrer le logiciel** relance le serveur (par exemple après une mise à jour), à condition de l'avoir démarré avec `Lancer le show.command`.
 - **Piloter depuis l'iPhone** : lance le logiciel avec `HOST=0.0.0.0 npm start`, puis ouvre `http://<nom-du-mac>.local:8321` sur l'iPhone. Il n'y a pas de mot de passe, donc à réserver à ton réseau personnel.
-- **Infos des morceaux** : pour trouver la pochette, l'extrait de 30 s et le tempo, le logiciel envoie le **titre et l'artiste** du morceau aux API publiques **iTunes Search** et **Deezer** (sans compte ni clé). Les résultats restent en cache sur ton Mac pendant 30 jours.
+- **Infos des morceaux** : pour trouver la pochette, l'extrait de 30 s, le genre et le tempo, le logiciel envoie le **titre et l'artiste** du morceau aux API publiques **iTunes Search** et **Deezer** (sans compte ni clé). Les analyses (couleurs, tempo, énergie) sont faites dans ton navigateur et les résultats restent en cache sur ton Mac pendant 30 jours.
 - **Autres réglages** par variables d'environnement : `PORT` (8321 par défaut), `MATTER_DEBUG=1` (journaux détaillés de matter.js), `MUSIC_SIM=1` (lecteur de musique simulé, pour développer sans Mac).
 
 ## 6. Dépannage
@@ -129,16 +146,17 @@ Tout ce qui est personnel est écrit dans le dossier `data/`, **exclu de Git** (
 |---|---|
 | `data/matter/` | identité du contrôleur Matter et appairages — **ne le partage jamais** |
 | `data/lampes.json` | noms, ordre et lampes masquées |
-| `data/reglages.json` | réglages |
+| `data/pieces.json` | tes pièces, leurs lampes et leurs enceintes |
+| `data/reglages.json` | réglages (dont « Mes couleurs ») |
 | `data/tempos.json` | tempos calés |
-| `data/morceaux/` | pochettes et extraits en cache des morceaux joués |
+| `data/morceaux/` | pochettes, extraits et analyses en cache des morceaux joués |
 
 Les shows que tu crées sont enregistrés dans `shows/` (exclus de Git aussi, sauf les 4 shows fournis). Pour en partager un, utilise **Exporter**.
 
 ## Fichiers du projet
 
-- `server.mjs`, `lib/` : le contrôleur Matter (bibliothèque open source [matter.js](https://github.com/matter-js/matter.js)), le moteur de show et la synchro musique.
-- `public/index.html` : l'interface.
+- `server.mjs`, `lib/` : le contrôleur Matter (bibliothèque open source [matter.js](https://github.com/matter-js/matter.js)), le moteur de show, les pièces, les palettes et la synchro musique.
+- `public/index.html`, `public/analyse.js` : l'interface et les analyses faites dans le navigateur (couleurs de la pochette, tempo, énergie).
 - `shows/` : les shows fournis (JSON lisible, modifiable à la main ; format décrit dans le [README anglais](README.md#show-file-format)).
 
 ## Licence

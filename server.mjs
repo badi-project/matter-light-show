@@ -7,9 +7,11 @@ import { dirname, extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
 import { MatterHub } from "./lib/matter.mjs";
-import { Dispatcher, Player, displayColor } from "./lib/show.mjs";
+import { Dispatcher, Player, displayColor, resolveStep } from "./lib/show.mjs";
 import { AppleMusic, SimulatedMusic } from "./lib/music.mjs";
 import { MusicSync } from "./lib/sync.mjs";
+import { Rooms, roomTargets } from "./lib/rooms.mjs";
+import { arrangeColors, isHex, isKelvin } from "./lib/palette.mjs";
 import { SongInfo } from "./lib/online.mjs";
 import { trackKey } from "./lib/tempo.mjs";
 
@@ -38,9 +40,11 @@ const writeJson = (file, data) => {
 };
 const SETTINGS_FILE = join(DATA, "reglages.json");
 const LAMPS_FILE = join(DATA, "lampes.json");
+const ROOMS_FILE = join(DATA, "pieces.json");
 const TEMPOS_FILE = join(DATA, "tempos.json");
 const settings = { rate: 10, demo: false, musicLead: 0.15, rhythmIntensity: "auto", ...readJson(SETTINGS_FILE, {}) };
 const lampPrefs = readJson(LAMPS_FILE, {}); // id -> { alias, hidden, order }
+const rooms = new Rooms(readJson(ROOMS_FILE, {}), d => writeJson(ROOMS_FILE, d)); // pièces : lampes, ordre, enceintes
 
 // ---------------------------------------------------------------- journal
 const logs = [];
@@ -69,7 +73,7 @@ const hub = new MatterHub({ storagePath: join(DATA, "matter"), log });
 function allLamps() {
     const list = [...hub.getLamps(), ...(settings.demo ? DEMO_LAMPS : [])].map((l, i) => {
         const p = lampPrefs[l.id] ?? {};
-        return { ...l, matterName: l.name, name: p.alias || l.name, hidden: !!p.hidden, order: p.order ?? 1000 + i };
+        return { ...l, matterName: l.name, name: p.alias || l.name, hidden: !!p.hidden, order: p.order ?? 1000 + i, room: rooms.roomOf(l.id)?.id ?? null };
     });
     return list.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
 }
@@ -112,7 +116,29 @@ const sync = new MusicSync({
     settings,
     calib: readJson(TEMPOS_FILE, {}),
     saveCalib: c => writeJson(TEMPOS_FILE, c),
+    rooms,
+    getSpeakers: () => activeSpeakers,
 });
+
+// enceintes AirPlay en cours de lecture (pour « seulement les pièces où la musique passe »)
+let activeSpeakers = [];
+let speakerNames = [];
+async function refreshSpeakers() {
+    if (!music.available) return;
+    try {
+        const list = await music.airplay();
+        speakerNames = list.map(d => d.name);
+        const sel = list.filter(d => d.selected).map(d => d.name);
+        if (sel.join("|") !== activeSpeakers.join("|")) {
+            activeSpeakers = sel;
+            sync.refresh();
+        }
+    } catch {}
+}
+setInterval(() => {
+    if (settings.speakerLink && sync.enabled) refreshSpeakers();
+}, 15000);
+setTimeout(refreshSpeakers, 3000);
 sync.on("player", onPlayer);
 sync.on("status", () => broadcast("music", musicInfo()));
 function musicInfo() {
@@ -130,9 +156,15 @@ music.on("state", (st, changed) => {
         .catch(e => log("warn", `Infos du morceau indisponibles : ${e.message}`));
 });
 const SERVE_TYPES = { ".jpg": "image/jpeg", ".png": "image/png", ".m4a": "audio/mp4", ".mp3": "audio/mpeg", ".wav": "audio/wav" };
+function saveSyncSettings() {
+    settings.syncChoice = sync.choice;
+    settings.syncEnabled = sync.enabled;
+    writeJson(SETTINGS_FILE, settings);
+}
 function stopSync() {
     if (sync.enabled) {
         sync.setEnabled(false);
+        saveSyncSettings();
         log("info", "Synchro musique désactivée (show lancé à la main).");
     }
 }
@@ -168,6 +200,7 @@ function snapshot() {
         matter: { ready: hub.ready, error: hub.error, pairing: hub.pairing },
         nodes: hub.getNodes(),
         lamps: allLamps(),
+        rooms: rooms.list(),
         shows: listShows(),
         settings,
         player: playerStatus,
@@ -303,6 +336,7 @@ const routes = {
             if (body.enabled) player.stop();
             sync.setEnabled(body.enabled);
         }
+        saveSyncSettings(); // choix et état gardés au prochain démarrage
         return { ok: true };
     },
     "POST /api/music/command": async ({ body }) => {
@@ -311,21 +345,114 @@ const routes = {
     },
     "GET /api/music/playlists": async () => music.playlists(),
     "GET /api/music/airplay": async () => music.airplay(),
+    // volume d'une enceinte AirPlay (name) ou volume général de l'app Musique (sans name), de 0 à 100
+    "POST /api/music/volume": async ({ body }) => {
+        const v = Math.round(Number(body.volume));
+        if (!(v >= 0 && v <= 100)) throw new Error("Volume invalide");
+        if (body.name) await music.setDeviceVolume(String(body.name), v);
+        else await music.setVolume(v);
+        return { ok: true };
+    },
+    "GET /api/music/volume": async () => ({ volume: await music.getVolume() }),
     "POST /api/music/airplay": async ({ body }) => {
         await music.setAirplay(body.names);
+        await refreshSpeakers();
         return music.airplay();
     },
+
+    // ---------- pièces
+    "POST /api/rooms": async ({ body }) => {
+        const r = rooms.add(body.name, Array.isArray(body.speakers) ? body.speakers : []);
+        sync.refresh();
+        pushState();
+        return r;
+    },
+    "PATCH /api/rooms/:id": async ({ params, body }) => {
+        const r = rooms.update(params.id, body);
+        sync.refresh();
+        pushState();
+        return r;
+    },
+    "DELETE /api/rooms/:id": async ({ params }) => {
+        rooms.remove(params.id);
+        sync.refresh();
+        pushState();
+        return { ok: true };
+    },
+    "POST /api/rooms/order": async ({ body }) => {
+        rooms.order(body.ids ?? []);
+        sync.refresh();
+        pushState();
+        return { ok: true };
+    },
+    "POST /api/rooms/auto": async () => {
+        await refreshSpeakers();
+        const r = rooms.autoFill(allLamps(), speakerNames);
+        sync.refresh();
+        pushState();
+        return r;
+    },
+    "POST /api/lamps/:id/room": async ({ params, body }) => {
+        rooms.assign(params.id, body.room || null);
+        sync.refresh();
+        pushState();
+        return { ok: true };
+    },
+
+    // ---------- mes couleurs : diffuser tout de suite (sans musique)
+    "POST /api/mycolors/apply": async () => {
+        const colors = arrangeColors(sync.myColors(), "degrade");
+        const step = { mode: "palette", palette: { colors, brightness: 85 } };
+        const lamps = activeLamps();
+        const coh = settings.coherence ?? "off";
+        const targets = coh !== "off" ? roomTargets(step, rooms.plan(lamps).groups, coh === "ambiance" ? 1 : 0.7) : resolveStep(step, lamps);
+        player.stop(false);
+        stopSync();
+        applyTargets(targets, 1.5);
+        return { ok: true, colors };
+    },
     "POST /api/music/analysis": async ({ body }) => {
-        // résultats calculés dans la page : tempo de l'extrait, palette de la pochette
+        // résultats calculés dans la page : tempo et caractère de l'extrait, couleurs de la pochette
         const data = {};
+        const num = (v, lo, hi) => (Number.isFinite(Number(v)) ? Math.max(lo, Math.min(hi, Number(v))) : undefined);
         if (Number(body.bpm) > 0) data.analysisBpm = Math.round(Number(body.bpm) * 10) / 10;
         if (Array.isArray(body.palette) && body.palette.length) data.palette = body.palette.filter(c => /^#[0-9a-f]{6}$/i.test(c)).slice(0, 5);
+        if (body.cover && typeof body.cover === "object") {
+            const colors = (Array.isArray(body.cover.colors) ? body.cover.colors : [])
+                .filter(c => /^#[0-9a-f]{6}$/i.test(c?.hex))
+                .slice(0, 5)
+                .map(c => ({ hex: c.hex, name: String(c.name ?? "").slice(0, 20), share: num(c.share, 0, 1) }));
+            data.cover = { colors, colorful: num(body.cover.colorful, 0, 1), light: num(body.cover.light, 0, 1), mono: !!body.cover.mono };
+            data.palette = colors.map(c => c.hex);
+            data.paletteV = 2;
+        }
+        if (body.features && typeof body.features === "object") {
+            const f = body.features;
+            data.features = {
+                energy: num(f.energy, 0, 1),
+                loudness: num(f.loudness, -90, 0),
+                dynamics: num(f.dynamics, 0, 60),
+                brightness: num(f.brightness, 0, 20000),
+                bass: num(f.bass, 0, 1),
+                air: num(f.air, 0, 1),
+                onsetRate: num(f.onsetRate, 0, 30),
+                pulse: num(f.pulse, -1, 1),
+            };
+            data.featuresV = 2;
+        }
         if (!body.key || !Object.keys(data).length) throw new Error("Analyse vide");
         songs.merge(String(body.key), data);
         sync.refresh();
         return { ok: true };
     },
     "POST /api/music/calibrate": async ({ body }) => sync.calibrate(body),
+    // relance du serveur (après une mise à jour) : le lanceur « Lancer le show » le redémarre dans la même fenêtre
+    "POST /api/restart": async () => {
+        if (process.env.SHOW_LAUNCHER !== "1") throw new Error("Redémarrage automatique indisponible : relance « Lancer le show ».");
+        log("info", "Redémarrage du serveur demandé…");
+        setTimeout(() => shutdown(75), 400);
+        return { ok: true };
+    },
     "POST /api/music/energy": async ({ body }) => {
         sync.setEnergy(body.level);
         return { ok: true };
@@ -357,6 +484,15 @@ const routes = {
         if ("demo" in body) settings.demo = !!body.demo;
         if ("musicLead" in body) settings.musicLead = Math.max(-3, Math.min(3, Number(body.musicLead) || 0));
         if ("rhythmIntensity" in body) settings.rhythmIntensity = ["doux", "moyen", "fort", "aucun"].includes(body.rhythmIntensity) ? body.rhythmIntensity : "auto";
+        if ("coherence" in body) settings.coherence = ["ambiance", "vague", "piece"].includes(body.coherence) ? body.coherence : "off";
+        if ("speakerLink" in body) {
+            settings.speakerLink = !!body.speakerLink;
+            if (settings.speakerLink) refreshSpeakers();
+        }
+        if ("otherRooms" in body) settings.otherRooms = ["blanc", "eteint", "inchange"].includes(body.otherRooms) ? body.otherRooms : "blanc";
+        if ("myColors" in body && Array.isArray(body.myColors)) {
+            settings.myColors = body.myColors.map(c => String(c)).filter(c => isHex(c) || isKelvin(c)).slice(0, 6);
+        }
         sync.recompute();
         writeJson(SETTINGS_FILE, settings);
         pushState();
@@ -445,6 +581,9 @@ server.listen(PORT, HOST, () => {
 });
 
 music.start();
+// reprend le mode de synchro choisi la dernière fois
+if (settings.syncChoice) sync.setChoice(settings.syncChoice);
+if (settings.syncEnabled) sync.setEnabled(true);
 
 hub.start().catch(e => {
     hub.error = e.message;
@@ -452,15 +591,15 @@ hub.start().catch(e => {
     pushState();
 });
 
-async function shutdown() {
-    console.log("\nArrêt…");
+async function shutdown(code = 0) {
+    console.log(code === 75 ? "\nRedémarrage…" : "\nArrêt…");
     player.stop(false);
     sync.setEnabled(false);
     music.stop();
     try {
         await hub.close();
     } catch {}
-    process.exit(0);
+    process.exit(typeof code === "number" ? code : 0);
 }
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
+process.on("SIGINT", () => shutdown(0));
+process.on("SIGTERM", () => shutdown(0));

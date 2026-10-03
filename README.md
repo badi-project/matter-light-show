@@ -10,6 +10,8 @@ No cloud, no account, no vendor API: the app speaks standard [Matter](https://cs
 
 ![Music sync](docs/screenshot-music.png)
 
+![Rooms](docs/screenshot-rooms.png)
+
 ---
 
 ## Features
@@ -20,11 +22,16 @@ No cloud, no account, no vendor API: the app speaks standard [Matter](https://cs
   - *Palette* — a list of colours spread over the lamps, with a shift to create chases and waves;
   - *Lamp by lamp* — per-lamp settings.
 - **Music sync with Apple Music** (macOS):
-  - colours taken automatically from the **album cover** (or the genre), and the style follows the music (calm / groove / energetic);
+  - **4 automatic colour modes** built from the **album cover** (faces, greys and blacks ignored) plus mood colours picked from the genre, style and tempo — *full*, *sober*, *cover only* and *shades* (the cover colours declined into vivid / light / pastel / dark / deep variants);
+  - **genre-aware accents**: every beat for dance and K-pop, beats 2 & 4 for rock and R&B, "one drop" for reggae, slow breathing for classical and ambient…;
+  - **style** (calm / groove / energetic) from tempo, genre and the **energy** measured on the 30 s preview;
+  - **My colours**: pick up to 6 colours (pastels included); they are arranged into a smooth gradient around the colour wheel (or contrasting halves for energetic songs) and can also be applied as a static ambiance;
   - tempo found automatically (30 s Apple preview analysed in the browser, public BPM databases, or tap tempo);
   - optional **microphone beat alignment** — analysed locally in the browser, nothing recorded or sent;
   - each beat sends a wave of colour across the room, with brightness accents on the downbeat;
   - playlists or songs matching keywords (e.g. "Christmas", "Halloween") start dedicated shows.
+- **Rooms & coherence**: group lamps into rooms (suggested from lamp names, or read from Matter labels when the device provides them), link each room to its AirPlay speakers, then choose one ambiance per room, waves from room to room, a whole room at once, or **only the rooms where music is playing**.
+- **AirPlay volume** per speaker and master volume, right from the Music tab.
 - **Rate limiting** built in: commands are spread so a Hue Bridge (~10 commands/s) is never flooded.
 - **Demo mode**: 6 virtual lamps to design shows without any hardware.
 - 4 bundled shows: *Soirée ambiance*, *Chenillard rouge & bleu*, *Halloween — Nuit des monstres*, *Noël enchanté*.
@@ -54,7 +61,7 @@ npm install
 npm start
 ```
 
-Then open <http://localhost:8321>.
+Then open <http://localhost:8321>. Already installed? `git pull`, then click **Réglages › Redémarrer le logiciel** (or restart the launcher).
 
 On macOS you can also double-click **`Lancer le show.command`**: it installs dependencies on first run, stops any older instance, prevents the Mac from sleeping while the show runs, and opens the browser. If macOS says the file can't be executed, run `chmod +x "Lancer le show.command"` once.
 
@@ -81,12 +88,29 @@ Removing a device (**Retirer**) only removes this controller's fabric — the de
 
 In the **Musique** tab, play music with the **Music app on the Mac** (AirPlay to HomePods and speakers works), then turn on **Synchroniser les lumières avec la musique**:
 
-- **Automatic** colours: from the cover art (enriched so that near-monochrome covers still give visible changes), or from the genre, or from a show whose keywords match the playlist / title / genre;
+- **Automatic** colours — four modes:
+  - *Auto complet* (default): main cover colours + mood colours from genre, style and tempo (fewer, softer, warmer colours for calm songs; more saturated ones with an "impact" colour for energetic songs);
+  - *Auto sobre*: cover colours + only 2 mood colours;
+  - *Auto pochette*: cover colours only (white light for a black & white cover);
+  - *Auto nuances*: cover colours declined into shades, flavoured by the genre (vivid for K-pop/electro, deep for jazz/R&B, soft pastel for indie/folk, contrasted for rock);
+- **Mes couleurs**: your own palette (up to 6 colours), auto-arranged; **Diffuser maintenant** applies it without music;
 - or pick **one of your shows**: its colours are kept and the music drives the rhythm;
 - **Rhythm intensity**: auto, soft, medium, strong or none;
 - **Save these colours as a show** turns the automatic palette into an editable show.
 
-To look up cover art, the 30 s preview and BPM, the app sends the **song title and artist** to the public **iTunes Search** and **Deezer** APIs (no account, no key). Results are cached locally for 30 days.
+The genre is read from the Music app, Apple and Deezer (or guessed from the audio when missing); it also picks the accent pattern.
+
+### Rooms and coherence
+
+In **Lampes › Pièces**, create rooms or click **Proposer d'après les noms** (e.g. "Bedroom lamp" → Chambre, "Kitchen 1/2" → Cuisine, "Garden 1/2/3" → Jardin; French and English keywords, otherwise lamps sharing a name prefix are grouped), fix each lamp's room, order the rooms (this is the wave order) and link each room to its AirPlay speakers. A Hue Bridge doesn't expose its rooms over Matter, so this is done by hand; if a device does announce room labels in Matter, they are used automatically.
+
+Then, under the colours in the **Musique** tab, choose a **coherence** mode:
+- **One ambiance per room**: one dominant colour per room with close shades between its lamps;
+- **Waves from room to room**: each change starts in the first room and travels in room order;
+- **A whole room at once**: all lamps of a room change together, rooms answer each other on the beat (works best with the bridge rate limit);
+- **Only where the music plays**: the show only runs in rooms whose AirPlay speaker is selected; other rooms go soft white, turn off or stay unchanged.
+
+To look up cover art, the 30 s preview, genre and BPM, the app sends the **song title and artist** to the public **iTunes Search** and **Deezer** APIs (no account, no key). Colour, tempo and energy analyses run in your browser; results are cached locally for 30 days.
 
 ## Configuration
 
@@ -97,7 +121,7 @@ To look up cover art, the 30 s preview and BPM, the app sends the **song title a
 | `MATTER_DEBUG` | – | Verbose matter.js logs |
 | `MUSIC_SIM` | – | Simulated music player (for development without a Mac) |
 
-Other settings (max command rate, light lead time, demo mode…) are in the **Réglages** tab.
+Other settings (max command rate, light lead time, demo mode…) are in the **Réglages** tab, along with **Redémarrer le logiciel** (restart the server — available when started with the launcher, which relaunches it).
 
 ## Your data stays on your machine
 
@@ -107,9 +131,10 @@ Everything personal is written to the `data/` folder, which is **git-ignored**:
 |---|---|
 | `data/matter/` | Matter controller identity and fabric credentials, paired devices — **never share this** |
 | `data/lampes.json` | Lamp names, order, hidden lamps |
-| `data/reglages.json` | Settings |
+| `data/pieces.json` | Your rooms, their lamps and speakers |
+| `data/reglages.json` | Settings (including *My colours*) |
 | `data/tempos.json` | Calibrated tempos |
-| `data/morceaux/` | Cached cover art and previews of the songs you played |
+| `data/morceaux/` | Cached cover art, previews and analyses of the songs you played |
 
 Shows you create are saved to `shows/` (also git-ignored, except the 4 bundled ones). Use **Exporter / Importer** to share a show as a `.json` file.
 
@@ -145,18 +170,24 @@ server.mjs          HTTP server, REST API + Server-Sent Events, JSON persistence
 lib/matter.mjs      Matter controller: pairing, lamp discovery, commands (matter.js)
 lib/show.mjs        Show engine: step resolution, player, rate-limited dispatcher
 lib/color.mjs       Colour conversions (hex → CIE xy / hue-sat, Kelvin → mireds)
-lib/music.mjs       Apple Music via osascript (state, transport, playlists, AirPlay) + simulator
+lib/palette.mjs     Colour arrangement (gradient / contrast) and shades
+lib/rooms.mjs       Rooms: suggestions from names, speaker links, per-room targets
+lib/music.mjs       Apple Music via osascript (state, transport, playlists, AirPlay, volume) + simulator
 lib/online.mjs      Song info from public iTunes Search / Deezer APIs (cached)
+lib/genre.mjs       Genre families, energy, style, accent patterns, palette building
 lib/autoshow.mjs    Automatic shows from cover/genre palettes
 lib/tempo.mjs       Known tempos, BPM normalisation, tap tempo
-lib/sync.mjs        Music sync: beat clock, waves and accents
+lib/sync.mjs        Music sync: beat clock, waves, rooms and accents
 public/index.html   The whole web interface (vanilla JS)
+public/analyse.js   In-browser analyses: cover colours (OKLab), tempo, energy
 shows/              Bundled shows
 ```
 
 ## Known limitations
 
-- A Hue Bridge accepts roughly **10 Matter commands per second**. With many lamps, only a few change on each beat; raise the max rate in Réglages (15–20) if your bridge keeps up.
+- A Hue Bridge accepts roughly **10 Matter commands per second**. With many lamps, only a few change on each beat (changing a big room takes several beats); raise the max rate in Réglages (15–20) if your bridge keeps up.
+- A Hue Bridge doesn't share its rooms over Matter: rooms must be set up in the app.
+- Analyses run in the page: keep the web interface open (at least once per song).
 - Not available through Matter: Hue gradient effects, Hue Entertainment sync, Hue scenes.
 - Music sync only follows the **Music app of the Mac** running the server.
 - The Mac must stay awake during the show (the launcher uses `caffeinate`).
