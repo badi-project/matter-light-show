@@ -3,7 +3,7 @@ node_modules/
 
 # Personal data — NEVER commit:
 #  - data/matter     : Matter controller identity (fabric keys, paired devices)
-#  - data/*.json     : lamp names, settings, calibrated tempos
+#  - data/*.json     : lamp names, rooms & speakers, settings, calibrated tempos
 #  - data/morceaux/  : cached cover art / 30 s previews of the songs you play
 data/
 
