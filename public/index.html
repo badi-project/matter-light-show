@@ -116,6 +116,22 @@ select, .num { background: var(--panel-2); border: 1px solid var(--line); border
 .slider { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
 input[type=range] { accent-color: var(--accent); width: 150px; }
 .addsw { width: 30px; height: 30px; border-radius: 8px; border: 1px dashed #4a5470; background: none; color: var(--muted); }
+.subbox { margin-top: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel-2); }
+.subbox h3 { margin: 0 0 8px; font-size: 13px; text-transform: none; letter-spacing: 0; color: var(--text); }
+.subbox a, #roomsSource a { color: var(--accent); }
+input.text { background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px; padding: 7px 10px; color: var(--text); }
+input.text:focus { outline: none; border-color: var(--accent); }
+.subbox .row { flex-wrap: wrap; }
+.room-row { padding: 8px 0; border-bottom: 1px solid var(--line); }
+.room-row:last-child { border-bottom: 0; }
+.room-row .top { display: flex; align-items: center; gap: 8px; }
+.room-row input.rname { flex: 1; min-width: 0; background: transparent; border: 1px solid transparent; border-radius: 7px; padding: 4px 6px; font-weight: 600; }
+.room-row input.rname:hover, .room-row input.rname:focus { background: var(--panel-2); border-color: var(--line); outline: none; }
+.room-row .spk { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 0 6px; }
+.chip { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); cursor: pointer; user-select: none; }
+.chip input { display: none; }
+.chip.on { border-color: var(--accent); color: var(--text); background: rgba(255, 179, 0, .12); }
+select.room-sel { font-size: 12px; padding: 2px 6px; margin-left: 6px; max-width: 150px; }
 .lamp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
 .lamp-tile { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--line); cursor: pointer; min-width: 0; }
 .lamp-tile .t { min-width: 0; }
@@ -169,7 +185,7 @@ ol.help li { margin-bottom: 6px; }
 
 .two > *, .shows-layout > * { min-width: 0; }
 .now .t, .now .muted { overflow-wrap: anywhere; }
-#playlistSel, #syncChoice { max-width: 100%; min-width: 0; }
+#playlistSel, #syncChoice, #coherence, #otherRooms { max-width: 100%; min-width: 0; }
 .kw-row { display: flex; align-items: center; gap: 10px; margin: -4px 14px 12px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
 .kw { flex: 1; min-width: 200px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; }
 .now { display: flex; gap: 14px; align-items: center; margin: 6px 0 12px; }
@@ -187,6 +203,13 @@ ol.help li { margin-bottom: 6px; }
 .ap-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--line); }
 .ap-row:last-child { border-bottom: 0; }
 .ap-row input { accent-color: var(--accent); width: 18px; height: 18px; }
+.ap-dev { border-bottom: 1px solid var(--line); }
+.ap-dev:last-child { border-bottom: 0; }
+.ap-dev .ap-row { border-bottom: 0; }
+.ap-vol { display: flex; align-items: center; gap: 10px; padding: 0 0 8px 28px; font-size: 13px; color: var(--muted); }
+.ap-vol.master { padding: 4px 0 10px; border-bottom: 1px solid var(--line); color: var(--text); }
+.ap-vol input[type=range] { flex: 1; width: auto; min-width: 0; }
+.ap-vol b { width: 30px; text-align: right; color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
 .sync-status { margin: 12px 0; padding: 10px 12px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--line); font-size: 13px; }
 .sync-status b { color: var(--text); }
 .tap { width: 100%; padding: 22px; border-radius: 14px; border: 2px dashed #4a5470; background: #121622; font-size: 17px; font-weight: 700; color: var(--text); user-select: none; -webkit-user-select: none; touch-action: manipulation; }
@@ -253,6 +276,17 @@ details.fine summary { cursor: pointer; color: var(--muted); font-size: 13px; ma
         <div id="lampList"></div>
       </div>
       <div>
+        <div class="panel card" style="margin-bottom:16px">
+          <h2>Pièces</h2>
+          <p class="muted small" style="margin-top:0">Pour la <b>cohérence</b> (onglet Musique) : une couleur par pièce, des vagues qui passent d'une pièce à l'autre <b>dans cet ordre</b>, et le show seulement dans les pièces dont l'<b>enceinte</b> joue.</p>
+          <p class="small muted" id="roomsSource"></p>
+          <div id="roomList"></div>
+          <div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">
+            <input id="roomName" class="text" placeholder="Nouvelle pièce (ex. Salon)" style="flex:1;min-width:140px">
+            <button class="btn small" id="roomAdd">Ajouter</button>
+            <button class="btn small ghost" id="roomAuto" title="Range les lampes sans pièce d'après leurs noms (chevet → Chambre, Jardin 1 → Jardin…)">Proposer d'après les noms</button>
+          </div>
+        </div>
         <div class="panel card">
           <h2>Ajouter un appareil Matter</h2>
           <div class="pair-box">
@@ -297,6 +331,29 @@ details.fine summary { cursor: pointer; color: var(--muted); font-size: 13px; ma
         <h2>Synchro lumières</h2>
         <label class="toggle"><input type="checkbox" id="syncOn"><span class="sw"></span><span style="color:var(--text);font-size:15px">Synchroniser les lumières avec la musique</span></label>
         <div class="field" style="margin-top:12px;width:100%">Couleurs <select id="syncChoice" style="flex:1"></select></div>
+        <div class="subbox hidden" id="myColorsBox">
+          <h3>Mes couleurs <span class="muted small" style="font-weight:400">(jusqu'à 6, rangées automatiquement)</span></h3>
+          <div class="row" style="gap:8px" id="myColorsList"></div>
+          <div class="small muted" style="margin-top:8px">Sur les lampes : <span id="myColorsOrder"></span></div>
+          <button class="btn small" id="myColorsApply" style="margin-top:8px" title="Diffuse ces couleurs tout de suite, sans musique (la synchro s'arrête)">Diffuser maintenant (ambiance fixe)</button>
+        </div>
+        <div class="subbox" id="coherenceBox">
+          <div class="field" style="width:100%;flex-wrap:wrap;margin:0">Cohérence
+            <select id="coherence" style="flex:1">
+              <option value="off">Désactivée : lampes mélangées dans toute la maison</option>
+              <option value="ambiance">Une ambiance par pièce (couleur dominante + nuances)</option>
+              <option value="vague">Vagues de pièce en pièce (dans l'ordre des pièces)</option>
+              <option value="piece">Une pièce entière d'un coup (les pièces se répondent)</option>
+            </select></div>
+          <label class="toggle" style="margin-top:10px"><input type="checkbox" id="speakerLink"><span class="sw"></span><span style="color:var(--text)">Seulement les pièces où la musique passe</span></label>
+          <div class="field" id="otherRoomsRow" style="margin-top:8px;flex-wrap:wrap">Autres pièces
+            <select id="otherRooms">
+              <option value="blanc">Blanc doux</option>
+              <option value="eteint">Éteintes</option>
+              <option value="inchange">Ne pas toucher</option>
+            </select></div>
+          <div class="small muted" id="roomsInfo" style="margin-top:8px"></div>
+        </div>
         <div class="sync-status" id="syncStatus"></div>
         <div class="mic-box">
           <label class="toggle"><input type="checkbox" id="micOn"><span class="sw"></span><span style="color:var(--text)">🎤 Caler les lumières sur les temps grâce au micro du Mac</span></label>
@@ -327,7 +384,8 @@ details.fine summary { cursor: pointer; color: var(--muted); font-size: 13px; ma
       <h2>Comment ça marche</h2>
       <ol class="help">
         <li>Joue ta musique avec l'app <b>Musique du Mac</b> (ou les boutons ci-dessus) et choisis tes HomePod / enceintes dans <b>Sorties AirPlay</b>.</li>
-        <li>Active la <b>synchro</b>. En <b>Automatique</b>, les couleurs viennent de la <b>pochette</b> du morceau (ou de son genre) et le style suit la musique : doux pour un morceau calme, plus vif pour un morceau rapide. Une playlist « Noël » ou « Halloween » lance les shows dédiés.</li>
+        <li>Active la <b>synchro</b> et choisis un mode <b>Auto</b> : <b>complet</b> (pochette + couleurs d'ambiance selon le genre, le style et le tempo), <b>sobre</b> (pochette + 2 couleurs), <b>pochette</b> (uniquement ses couleurs) ou <b>nuances</b> (les couleurs de la pochette en clair, foncé, vif, pastel ou teintes voisines, selon le genre). Le <b>genre</b> (app Musique, Apple, Deezer) règle aussi le motif des accents : chaque temps pour la dance et la K-pop, temps 2 et 4 pour le rock, respiration lente pour le classique… En complet et sobre, une playlist « Noël » ou « Halloween » lance les shows dédiés. Les curseurs sous chaque enceinte AirPlay règlent son volume.</li>
+        <li><b>Mes couleurs</b> : choisis jusqu'à 6 couleurs, elles sont rangées automatiquement (dégradé, ou contraste si le morceau est énergique). <b>Cohérence</b> : une couleur par pièce, des vagues d'une pièce à l'autre, ou une pièce entière à la fois, éventuellement seulement là où la musique passe. Les pièces se règlent dans l'onglet <b>Lampes</b>.</li>
         <li>Si tu choisis un <b>show</b>, ses couleurs sont gardées mais son <b>rythme suit la musique</b> : à chaque temps, un groupe de lampes change et la couleur se propage en vague dans la pièce.</li>
         <li>Pour tomber pile sur les temps, active le <b>micro</b> : il écoute quelques secondes et cale tout seul les lumières. Le tempo est aussi mesuré sur l'extrait du morceau fourni par Apple. Laisse cette page ouverte.</li>
       </ol>
@@ -347,6 +405,10 @@ details.fine summary { cursor: pointer; color: var(--muted); font-size: 13px; ma
           <label class="toggle"><input type="checkbox" id="demo"><span class="sw"></span><span style="color:var(--text)">Mode démo (6 lampes virtuelles)</span></label>
           <p class="muted small">Pour composer un show sans être chez toi : les lampes virtuelles n'apparaissent que dans l'aperçu.</p>
         </div>
+        <div style="margin:14px 0">
+          <button class="btn" id="restartSrv">Redémarrer le logiciel</button>
+          <p class="muted small">Après une mise à jour des fichiers : recharge le programme sans fermer la fenêtre Terminal (les lampes restent appairées).</p>
+        </div>
       </div>
       <div class="panel card">
         <h2>Journal</h2>
@@ -359,12 +421,14 @@ details.fine summary { cursor: pointer; color: var(--muted); font-size: 13px; ma
 <div class="pop hidden" id="pop"></div>
 <div class="toast hidden" id="toast"></div>
 
+<script src="analyse.js"></script>
 <script>
 // =====================================================================================
 // Données & utilitaires
 // =====================================================================================
 const PRESETS = ["#ff0000","#ff4f3a","#ff8c00","#ffb000","#ffe600","#a8ff00","#00d84a","#00ffa2",
                  "#00c8ff","#0080ff","#2b50ff","#4b2bff","#9b30ff","#ff00d4","#ff2d6f","#ffffff"];
+const PASTELS = ["#ff9999","#ffc299","#ffe7a3","#fff7a8","#d9ffa3","#a8f0c0","#a3ffe0","#a8e8ff","#a3c8ff","#b8b3ff","#d6b3ff","#ffb3f0","#ffb3c8","#f2d6c9","#e6e0d6","#d9e6f2"];
 const WHITES = [["2200K","Bougie"],["2700K","Chaud"],["4000K","Neutre"],["5000K","Jour"],["6500K","Froid"]];
 const KIND = { color: "Couleur", white: "Blanc", dim: "Variateur", onoff: "On/Off" };
 const ICON = {
@@ -444,7 +508,7 @@ function connect() {
 let lampSig = "";
 function renderAll() {
   renderMusic();
-  renderStatus(); renderBulbs(); renderShowList(); renderLamps(); renderNodes(); renderSettings(); renderLog();
+  renderStatus(); renderBulbs(); renderShowList(); renderLamps(); renderRooms(); renderNodes(); renderSettings(); renderLog();
   // on ne reconstruit l'éditeur que si nécessaire (pour ne pas perdre la saisie en cours)
   const sig = JSON.stringify([activeLamps().map(l => [l.id, l.name, l.kind, l.virtual]), S.st.settings.rate]);
   if (!S.show || !S.st.shows.find(s => s.id === S.showId)) {
@@ -789,6 +853,8 @@ function openPicker(anchor, opts, onPick) {
     </div>` : ""}
     <h4>Couleurs</h4>
     <div class="grid">${PRESETS.map(c => `<div class="swatch ${c === opts.value ? "sel" : ""}" data-v="${c}" style="background:${c}" title="${c}"></div>`).join("")}</div>
+    <h4>Pastels</h4>
+    <div class="grid">${PASTELS.map(c => `<div class="swatch ${c === opts.value ? "sel" : ""}" data-v="${c}" style="background:${c}" title="${c}"></div>`).join("")}</div>
     <h4>Blancs</h4>
     <div class="whites">${WHITES.map(([k, n]) => `<button data-v="${k}" class="${k === opts.value ? "sel" : ""}" style="background:${kelvinToHex(k)}">${n}<br>${k}</button>`).join("")}</div>
     <div class="custom"><input type="color" value="${opts.value && !isK(opts.value) && opts.value !== "off" ? opts.value : "#ff7a00"}"><span class="muted small">Couleur perso</span>
@@ -826,6 +892,7 @@ function renderLamps() {
           ${l.virtual ? '<span class="badge">démo</span>' : ""}
           ${l.reachable === false ? '<span class="badge bad">injoignable</span>' : ""}
           ${l.name !== l.matterName ? `<span>· ${esc(l.matterName)}</span>` : ""}
+          <select class="room-sel" title="Pièce"><option value="">Sans pièce</option>${(S.st.rooms || []).map(r => `<option value="${esc(r.id)}" ${r.id === l.room ? "selected" : ""}>${esc(r.name)}</option>`).join("")}</select>
         </div>
       </div>
       <button class="iconbtn" data-a="try" title="Tester une couleur">${ICON.flash}</button>
@@ -839,6 +906,7 @@ function renderLamps() {
     const id = row.dataset.id, enc = encodeURIComponent(id);
     row.querySelector(".alias").onchange = e => api("PATCH", `/api/lamps/${enc}`, { alias: e.target.value.trim() });
     row.querySelector("input[type=checkbox]").onchange = e => api("PATCH", `/api/lamps/${enc}`, { hidden: !e.target.checked });
+    row.querySelector(".room-sel").onchange = e => api("POST", `/api/lamps/${enc}/room`, { room: e.target.value || null }).catch(err => toast(err.message, true));
     row.querySelectorAll("[data-a]").forEach(b => b.onclick = () => {
       const a = b.dataset.a;
       if (a === "identify") return api("POST", `/api/lamps/${enc}/identify`).catch(e => toast(e.message, true));
@@ -851,6 +919,60 @@ function renderLamps() {
   });
   paintBulbs(0);
 }
+
+// ---------- pièces
+S.speakers = null;
+async function loadSpeakers() {
+  try { S.speakers = (await api("GET", "/api/music/airplay")).map(d => d.name); } catch { S.speakers = []; }
+  renderRooms();
+}
+function renderRooms() {
+  const box = $("#roomList"); if (!box) return;
+  const list = S.st.rooms || [], all = lamps();
+  const spk = S.speakers ?? [];
+  const sig = JSON.stringify([list, all.map(l => [l.id, l.room]), spk]);
+  if (box.dataset.sig === sig) return; box.dataset.sig = sig;
+  const fromMatter = [...new Set(all.map(l => l.matterRoom).filter(Boolean))];
+  $("#roomsSource").innerHTML = fromMatter.length
+    ? `Pièces annoncées par le pont en Matter : <b>${fromMatter.map(esc).join(", ")}</b>. « Proposer » les utilise.`
+    : `Ton pont n'annonce pas ses pièces en Matter : crée-les ici, ou laisse-les proposer d'après les noms des lampes, puis choisis la pièce de chaque lampe dans la liste à gauche.`;
+  const loose = all.filter(l => !l.room).length;
+  box.innerHTML = list.length ? list.map((r, i) => {
+    const n = all.filter(l => l.room === r.id).length;
+    return `<div class="room-row" data-id="${esc(r.id)}">
+      <div class="top"><span class="badge">${i + 1}</span><input class="rname" value="${esc(r.name)}" title="Renommer"><span class="small muted">${n} lampe${n > 1 ? "s" : ""}</span>
+        <button class="iconbtn" data-a="up" title="Plus tôt dans les vagues" ${i === 0 ? "disabled" : ""}>${ICON.up}</button>
+        <button class="iconbtn" data-a="down" title="Plus tard dans les vagues" ${i === list.length - 1 ? "disabled" : ""}>${ICON.down}</button>
+        <button class="iconbtn" data-a="del" title="Supprimer la pièce">×</button></div>
+      <div class="spk">${spk.length ? spk.map(sp => `<label class="chip ${r.speakers?.includes(sp) ? "on" : ""}"><input type="checkbox" value="${esc(sp)}" ${r.speakers?.includes(sp) ? "checked" : ""}>🔈 ${esc(sp)}</label>`).join("") : `<span class="small muted">Ouvre l'app Musique pour relier des enceintes.</span>`}</div>
+    </div>`;
+  }).join("") + (loose ? `<p class="small muted" style="margin:8px 0 0">${loose} lampe${loose > 1 ? "s" : ""} sans pièce.</p>` : "")
+    : `<p class="small muted">Aucune pièce pour l'instant.</p>`;
+  box.querySelectorAll(".room-row").forEach(row => {
+    const id = row.dataset.id, enc = encodeURIComponent(id);
+    row.querySelector(".rname").onchange = e => api("PATCH", `/api/rooms/${enc}`, { name: e.target.value.trim() }).catch(err => toast(err.message, true));
+    row.querySelectorAll(".spk input").forEach(cb => cb.onchange = () => {
+      cb.parentElement.classList.toggle("on", cb.checked);
+      const speakers = [...row.querySelectorAll(".spk input:checked")].map(x => x.value);
+      api("PATCH", `/api/rooms/${enc}`, { speakers }).catch(err => toast(err.message, true));
+    });
+    row.querySelectorAll("[data-a]").forEach(b => b.onclick = () => {
+      const a = b.dataset.a;
+      if (a === "del") { if (confirm("Supprimer cette pièce ? (les lampes restent, sans pièce)")) api("DELETE", `/api/rooms/${enc}`).catch(err => toast(err.message, true)); return; }
+      const ids = list.map(r => r.id), i = ids.indexOf(id), j = a === "up" ? i - 1 : i + 1;
+      if (j < 0 || j >= ids.length) return;
+      [ids[i], ids[j]] = [ids[j], ids[i]];
+      api("POST", "/api/rooms/order", { ids });
+    });
+  });
+}
+$("#roomAdd").onclick = () => {
+  const name = $("#roomName").value.trim();
+  if (!name) return toast("Donne un nom à la pièce", true);
+  api("POST", "/api/rooms", { name }).then(() => { $("#roomName").value = ""; }).catch(e => toast(e.message, true));
+};
+$("#roomName").addEventListener("keydown", e => { if (e.key === "Enter") $("#roomAdd").click(); });
+$("#roomAuto").onclick = () => api("POST", "/api/rooms/auto").then(r => toast(r.assigned ? `${r.assigned} lampe${r.assigned > 1 ? "s" : ""} rangée${r.assigned > 1 ? "s" : ""}${r.created ? `, ${r.created} pièce${r.created > 1 ? "s" : ""} créée${r.created > 1 ? "s" : ""}` : ""} (${r.source === "matter" ? "pièces Matter" : "d'après les noms"}). Vérifie et corrige si besoin.` : "Aucune lampe à ranger (toutes ont une pièce, ou leurs noms ne disent rien).")).catch(e => toast(e.message, true));
 
 function renderNodes() {
   const nodes = S.st.nodes;
@@ -883,6 +1005,7 @@ function renderSettings() {
 $("#rate").oninput = e => $("#rateVal").textContent = e.target.value;
 $("#rate").onchange = e => api("PATCH", "/api/settings", { rate: Number(e.target.value) });
 $("#demo").onchange = e => api("PATCH", "/api/settings", { demo: e.target.checked });
+$("#restartSrv").onclick = () => api("POST", "/api/restart").then(() => toast("Redémarrage… la page se reconnecte toute seule.")).catch(e => toast(e.message, true));
 function renderLog() {
   const box = $("#log");
   box.innerHTML = S.st.logs.slice(-80).map(l => `<div class="${l.level}">${new Date(l.t).toLocaleTimeString("fr-FR")} ${esc(l.msg)}</div>`).join("") || '<span class="muted">Rien pour l\'instant.</span>';
@@ -897,6 +1020,7 @@ document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
   document.querySelectorAll(".tabs button").forEach(x => x.classList.toggle("on", x === b));
   ["shows", "lamps", "music", "settings"].forEach(t => $("#tab-" + t).classList.toggle("hidden", t !== S.tab));
   if (S.tab === "music") { loadPlaylists(); loadAirplay(); }
+  if (S.tab === "lamps") loadSpeakers();
 });
 $("#allOff").onclick = () => api("POST", "/api/direct", { state: { on: false }, fade: 1 }).catch(e => toast(e.message, true));
 $("#allWarm").onclick = () => api("POST", "/api/direct", { state: { on: true, color: "2700K", brightness: 70 }, fade: 1 }).catch(e => toast(e.message, true));
@@ -931,24 +1055,57 @@ function renderMusic() {
   if (box.dataset.sig !== sig) { box.innerHTML = html; box.dataset.sig = sig; }
 
   $("#syncOn").checked = sy.enabled;
-  const opts = [`<option value="auto">Automatique : selon la musique (pochette, genre, Noël, Halloween)</option>`]
+  const opts = [
+    `<option value="auto">Auto complet : pochette + couleurs d'ambiance (genre, style, tempo)</option>`,
+    `<option value="auto-sobre">Auto sobre : pochette + 2 couleurs</option>`,
+    `<option value="auto-pochette">Auto pochette : uniquement les couleurs de la pochette</option>`,
+    `<option value="auto-nuances">Auto nuances : la pochette en clair, foncé, vif… selon le genre</option>`,
+    `<option value="mes-couleurs">Mes couleurs : jusqu'à 6 couleurs que je choisis</option>`,
+  ]
     .concat((S.st.shows || []).map(s => `<option value="${esc(s.id)}">Show « ${esc(s.name)} » (rythme de la musique)</option>`));
   const sel = $("#syncChoice");
   if (sel.dataset.sig !== opts.join("")) { sel.innerHTML = opts.join(""); sel.dataset.sig = opts.join(""); }
   sel.value = sy.choice;
   $("#rhythmIntensity").value = sy.intensity || "auto";
+  renderMyColors(sy);
+  renderCoherence(sy);
 
   let status;
   if (!tr) status = "En attente d'un morceau dans l'app Musique.";
   else {
-    const sw = sy.palette?.length ? `<span class="swatches">${sy.palette.map(c => `<i style="background:${disp(c)}"></i>`).join("")}</span>` : "";
-    status = sy.auto
-      ? `Couleurs : ${sw}<span class="muted">${esc(sy.reason)}</span>`
-      : `Couleurs du show <b>${esc(sy.showName)}</b> <span class="muted">(${esc(sy.reason)})</span>`;
+    const sw = list => `<span class="swatches">${list.map(p => `<i style="background:${disp(p.c)}" title="${esc(p.name || "")}"></i>`).join("")}</span>`;
+    const groups = [["choisie", "mes couleurs"], ["pochette", "pochette"], ["nuance", "nuances"], ["ambiance", "ambiance"]]
+      .map(([src, label]) => [label, (sy.palette || []).filter(p => p.src === src)]).filter(([, l]) => l.length);
+    if (sy.auto) {
+      status = `Couleurs : ${groups.map(([label, l]) => `${label} ${sw(l)}`).join(" + ")}`;
+      if (sy.accent) status += ` · impact ${sw([{ c: sy.accent, name: "impact" }])}`;
+      status += `<br><span class="muted">${esc(sy.reason)}</span>`;
+    } else status = `Couleurs du show <b>${esc(sy.showName)}</b> <span class="muted">(${esc(sy.reason)})</span>`;
+    // genre et caractère
+    const g = sy.genre;
+    if (g) {
+      const src = g.guessed ? "deviné à l'écoute" : (g.sources || []).map(x => x.src === "Deezer" ? `Deezer : ${x.name}` : x.src).join(", ");
+      status += `<br>Genre : <b>${esc(g.name)}</b>${src ? ` <span class="muted">(${esc(src)})</span>` : ""}`;
+      if (g.label && g.label !== g.name && g.id !== "autre") status += ` · ambiance ${esc(g.label)}`;
+    }
+    const f = sy.features, e = sy.energy, bits = [];
+    if (e) bits.push(`énergie <b>${Math.round(e.value * 100)} %</b>${e.measured ? "" : " (estimée)"}`);
+    if (f) {
+      if (f.bass > 0.3) bits.push("basses fortes"); else if (f.bass < 0.12) bits.push("peu de basses");
+      if (f.brightness > 3000) bits.push("son brillant"); else if (f.brightness < 1200) bits.push("son doux, feutré");
+      if (f.pulse >= 0.3) bits.push("pulsation très nette"); else if (f.pulse < 0.06) bits.push("pulsation peu marquée");
+    } else if (sy.needs?.audio) bits.push(`<span class="muted">écoute de l'extrait…</span>`);
+    if (bits.length) status += `<br>Caractère : ${bits.join(" · ")}`;
     if (sy.tempo) {
       status += `<br>Rythme : <b>${Math.round(sy.tempo.bpm)} BPM</b> <span class="muted">(${esc(sy.tempo.source)})</span>`;
-      if (sy.styleLabel) status += ` · style ${esc(sy.styleLabel)}`;
+      if (sy.styleLabel) status += ` · style <b>${esc(sy.styleLabel)}</b>`;
+      if (sy.rhythm) status += ` · ${esc(sy.rhythm.label)}`;
       if (sy.lampsPerBeat && sy.enabled) status += ` · ${sy.lampsPerBeat} lampe${sy.lampsPerBeat > 1 ? "s" : ""} par temps`;
+    }
+    const ro = sy.rooms;
+    if (ro && (ro.coherence !== "off" || ro.speakerLink) && ro.groups.length) {
+      status += `<br>Pièces : ${ro.groups.map(g => `${esc(g.name)} <span class="muted">(${g.lamps})</span>`).join(ro.coherence === "vague" ? " → " : " · ")}`;
+      if (ro.inactive) status += ` <span class="muted">· ${ro.inactive} lampe${ro.inactive > 1 ? "s" : ""} hors musique</span>`;
     }
     if (!sy.tempo?.calibrated) status += `<br><span class="muted">Pas encore calé sur les temps : active le micro ci-dessous (ou tape le tempo).</span>`;
     else status += `<br>✓ Calé sur les temps de ce morceau.`;
@@ -961,6 +1118,53 @@ function renderMusic() {
   // analyses à faire dans la page pour ce morceau (une fois) : tempo de l'extrait, palette de la pochette
   if (sy.trackKey && sy.needs) Analyzer.maybeRun(sy.trackKey, sy.needs);
 }
+
+// ---------- mes couleurs (jusqu'à 6)
+const swHtml = list => `<span class="swatches">${list.map(p => `<i style="background:${disp(p.c ?? p)}" title="${esc(p.name || colorLabel(p.c ?? p))}"></i>`).join("")}</span>`;
+function saveMyColors(cols) { return api("PATCH", "/api/settings", { myColors: cols }).catch(e => toast(e.message, true)); }
+function renderMyColors(sy) {
+  const box = $("#myColorsBox");
+  const on = sy.choice === "mes-couleurs";
+  box.classList.toggle("hidden", !on);
+  if (!on) return;
+  const cols = (S.st.settings.myColors?.length ? S.st.settings.myColors : sy.myColors || []).slice(0, 6);
+  const sig = JSON.stringify([cols, sy.palette]);
+  if (box.dataset.sig === sig) return; box.dataset.sig = sig;
+  $("#myColorsList").innerHTML = cols.map((c, i) => `<div class="swatch sm" data-k="${i}" style="background:${disp(c)}" title="${esc(colorLabel(c))} — cliquer pour changer"><span class="x" data-x="${i}">×</span></div>`).join("")
+    + (cols.length < 6 ? `<button class="addsw" id="myAdd" title="Ajouter une couleur">+</button>` : "");
+  $("#myColorsOrder").innerHTML = sy.auto && sy.palette?.length && sy.palette[0].src === "choisie" ? swHtml(sy.palette) : `<span class="muted">(lance un morceau pour voir le rangement)</span>`;
+  $("#myColorsList").querySelectorAll(".swatch[data-k]").forEach(el => el.onclick = ev => {
+    const k = Number(el.dataset.k);
+    if (ev.target.dataset.x !== undefined) {
+      if (cols.length <= 1) return toast("Garde au moins une couleur", true);
+      return saveMyColors(cols.filter((_, i) => i !== k));
+    }
+    openPicker(el, { value: cols[k] }, v => { if (!v || v === "off") return; const next = [...cols]; next[k] = v; saveMyColors(next); });
+  });
+  const add = $("#myAdd");
+  if (add) add.onclick = () => openPicker(add, { value: null }, v => { if (!v || v === "off") return; saveMyColors([...cols, v].slice(0, 6)); });
+}
+$("#myColorsApply").onclick = () => api("POST", "/api/mycolors/apply").then(() => toast("Couleurs diffusées (la synchro est en pause).")).catch(e => toast(e.message, true));
+
+// ---------- cohérence par pièce
+function renderCoherence(sy) {
+  const set = S.st.settings, ro = sy.rooms;
+  $("#coherence").value = set.coherence || "off";
+  $("#speakerLink").checked = !!set.speakerLink;
+  $("#otherRooms").value = set.otherRooms || "blanc";
+  $("#otherRoomsRow").classList.toggle("hidden", !set.speakerLink);
+  let info = "";
+  if (!ro || !ro.defined) info = `Aucune pièce définie : toutes les lampes forment un seul groupe. <a href="#" id="goRooms">Crée tes pièces dans l'onglet Lampes</a>.`;
+  else {
+    info = `${ro.defined} pièce${ro.defined > 1 ? "s" : ""} définie${ro.defined > 1 ? "s" : ""} (ordre des vagues et enceintes : <a href="#" id="goRooms">onglet Lampes</a>).`;
+    if (set.speakerLink) info += ro.linked ? ` Musique dans : <b>${ro.groups.map(g => esc(g.name)).join(", ")}</b>.` : ` Aucune pièce reliée à une enceinte en lecture : le show joue partout.`;
+  }
+  const box = $("#roomsInfo");
+  if (box.dataset.sig !== info) { box.innerHTML = info; box.dataset.sig = info; const a = $("#goRooms"); if (a) a.onclick = e => { e.preventDefault(); document.querySelector('.tabs button[data-tab="lamps"]').click(); }; }
+}
+$("#coherence").onchange = e => api("PATCH", "/api/settings", { coherence: e.target.value }).catch(err => toast(err.message, true));
+$("#speakerLink").onchange = e => api("PATCH", "/api/settings", { speakerLink: e.target.checked }).catch(err => toast(err.message, true));
+$("#otherRooms").onchange = e => api("PATCH", "/api/settings", { otherRooms: e.target.value }).catch(err => toast(err.message, true));
 
 // animation : position et battement (estimés entre deux lectures de l'app Musique)
 function beatLoop() {
@@ -1004,16 +1208,37 @@ $("#playPlaylist").onclick = () => {
   const n = $("#playlistSel").value; if (!n) return toast("Choisis d'abord une playlist", true);
   api("POST", "/api/music/command", { action: "playlist", arg: n }).catch(e => toast(e.message, true));
 };
+// volume : envoi limité à ~4 par seconde pendant qu'on fait glisser
+const volSend = {};
+function sendVolume(name, v) {
+  const st = volSend[name || ""] ??= { timer: null, last: null, want: null };
+  st.want = v;
+  if (st.timer) return;
+  const go = () => {
+    if (st.want === st.last) { st.timer = null; return; }
+    st.last = st.want;
+    api("POST", "/api/music/volume", name ? { name, volume: st.want } : { volume: st.want }).catch(e => toast(e.message, true));
+    st.timer = setTimeout(go, 250);
+  };
+  go();
+}
 async function loadAirplay() {
   const box = $("#airplayList");
   try {
-    const list = await api("GET", "/api/music/airplay");
+    const [list, master] = await Promise.all([api("GET", "/api/music/airplay"), api("GET", "/api/music/volume").catch(() => ({ volume: null }))]);
     if (!list.length) { box.innerHTML = "Aucune sortie trouvée (ouvre l'app Musique)."; return; }
     const icon = k => /homepod/i.test(k) ? "◉" : /computer|ordinateur/i.test(k) ? "▭" : "◎";
-    box.innerHTML = list.map(d => `<label class="ap-row"><input type="checkbox" value="${esc(d.name)}" ${d.selected ? "checked" : ""} ${d.available ? "" : "disabled"}>
-      <span>${icon(d.kind)} ${esc(d.name)}</span>${d.available ? "" : '<span class="badge">indisponible</span>'}</label>`).join("");
-    box.querySelectorAll("input").forEach(i => i.onchange = async () => {
-      const names = [...box.querySelectorAll("input:checked")].map(x => x.value);
+    const slider = (name, v) => `<input type="range" min="0" max="100" step="1" value="${v}" data-vol="${esc(name)}" aria-label="Volume ${esc(name || "général")}"><b>${v}</b>`;
+    box.innerHTML = (master.volume != null ? `<div class="ap-vol master">🔊 Volume général ${slider("", master.volume)}</div>` : "") +
+      list.map(d => `<div class="ap-dev"><label class="ap-row"><input type="checkbox" value="${esc(d.name)}" ${d.selected ? "checked" : ""} ${d.available ? "" : "disabled"}>
+      <span>${icon(d.kind)} ${esc(d.name)}</span>${d.available ? "" : '<span class="badge">indisponible</span>'}</label>
+      ${d.selected && d.volume != null ? `<div class="ap-vol"><span>🔈</span>${slider(d.name, d.volume)}</div>` : ""}</div>`).join("");
+    box.querySelectorAll("input[data-vol]").forEach(r => {
+      r.oninput = () => { r.nextElementSibling.textContent = r.value; sendVolume(r.dataset.vol, Number(r.value)); };
+      r.onchange = () => sendVolume(r.dataset.vol, Number(r.value));
+    });
+    box.querySelectorAll("input[type=checkbox]").forEach(i => i.onchange = async () => {
+      const names = [...box.querySelectorAll("input[type=checkbox]:checked")].map(x => x.value);
       if (!names.length) { i.checked = true; return toast("Garde au moins une sortie", true); }
       try { await api("POST", "/api/music/airplay", { names }); } catch (e) { toast(e.message, true); }
       loadAirplay();
@@ -1045,95 +1270,17 @@ document.addEventListener("keydown", e => {
 // =====================================================================================
 // Analyse audio (dans la page) : FFT, détection d'attaques, tempo, calage par le micro
 // =====================================================================================
-const DSP = {
-  fft(re, im) {
-    const n = re.length;
-    for (let i = 1, j = 0; i < n; i++) {
-      let bit = n >> 1;
-      for (; j & bit; bit >>= 1) j ^= bit;
-      j ^= bit;
-      if (i < j) { let t = re[i]; re[i] = re[j]; re[j] = t; t = im[i]; im[i] = im[j]; im[j] = t; }
-    }
-    for (let len = 2; len <= n; len <<= 1) {
-      const ang = (-2 * Math.PI) / len, wr = Math.cos(ang), wi = Math.sin(ang), half = len >> 1;
-      for (let i = 0; i < n; i += len) {
-        let cr = 1, ci = 0;
-        for (let j = 0; j < half; j++) {
-          const a = i + j, b = a + half;
-          const br = re[b] * cr - im[b] * ci, bi = re[b] * ci + im[b] * cr;
-          re[b] = re[a] - br; im[b] = im[a] - bi; re[a] += br; im[a] += bi;
-          const t = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = t;
-        }
-      }
-    }
-  },
-  /** Renvoie f(frame) -> { flux, rms } : « flux spectral » (attaques), basses renforcées. */
-  makeOnset(sampleRate, N) {
-    const win = Float32Array.from({ length: N }, (_, i) => 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (N - 1)));
-    const re = new Float32Array(N), im = new Float32Array(N), prev = new Float32Array(N / 2);
-    const maxBin = Math.min(N / 2, Math.round((8000 / sampleRate) * N)), lowBin = Math.max(2, Math.round((180 / sampleRate) * N));
-    return frame => {
-      let rms = 0;
-      for (let i = 0; i < N; i++) { const v = frame[i] || 0; re[i] = v * win[i]; im[i] = 0; rms += v * v; }
-      DSP.fft(re, im);
-      let flux = 0;
-      for (let k = 1; k < maxBin; k++) {
-        const mag = Math.log1p(1000 * Math.hypot(re[k], im[k]));
-        const d = mag - prev[k];
-        if (d > 0) flux += k <= lowBin ? 3 * d : d;
-        prev[k] = mag;
-      }
-      return { flux, rms: Math.sqrt(rms / N) };
-    };
-  },
-  /** Retire la moyenne locale (~0,4 s) et garde la partie positive : ne restent que les attaques. */
-  clean(env, fps) {
-    const w = Math.max(1, Math.round(0.4 * fps)), n = env.length, out = new Float32Array(n), pre = new Float64Array(n + 1);
-    for (let i = 0; i < n; i++) pre[i + 1] = pre[i] + env[i];
-    for (let i = 0; i < n; i++) { const a = Math.max(0, i - w), b = Math.min(n, i + w + 1); out[i] = Math.max(0, env[i] - (pre[b] - pre[a]) / (b - a)); }
-    return out;
-  },
-  /** Tempo par autocorrélation de l'enveloppe des attaques (préférence douce autour de 120 BPM). */
-  tempo(env, fps) {
-    const n = env.length, minL = Math.max(2, Math.floor((fps * 60) / 185)), maxL = Math.ceil((fps * 60) / 62);
-    const top = Math.min(n - 2, 2 * maxL + 2), ac = new Float64Array(top + 2);
-    for (let L = minL - 1; L <= top; L++) { let s = 0; for (let i = 0; i + L < n; i++) s += env[i] * env[i + L]; ac[L] = s / (n - L); }
-    let best = -Infinity, bestL = minL;
-    for (let L = minL; L <= maxL; L++) {
-      const bpm = (60 * fps) / L, w = Math.exp(-0.5 * (Math.log2(bpm / 120) / 0.9) ** 2);
-      const sc = (ac[L] + 0.5 * (ac[2 * L] || 0)) * w;
-      if (sc > best) { best = sc; bestL = L; }
-    }
-    const y0 = ac[bestL - 1] || 0, y1 = ac[bestL], y2 = ac[bestL + 1] || 0, den = y0 - 2 * y1 + y2;
-    const off = den ? Math.max(-0.5, Math.min(0.5, (0.5 * (y0 - y2)) / den)) : 0;
-    let bpm = (60 * fps) / (bestL + off);
-    while (bpm > 180) bpm /= 2;
-    while (bpm < 85) bpm *= 2;
-    return Math.round(bpm * 10) / 10;
-  },
-  /** Affine le tempo (±1,5 BPM, pas de 0,02) : période qui aligne le mieux toutes les attaques. t = instants en s. */
-  refine(env, t, bpm) {
-    let best = bpm, bestR = -1;
-    for (let b = bpm - 1.5; b <= bpm + 1.5; b += 0.02) {
-      const w = (2 * Math.PI * b) / 60;
-      let sx = 0, sy = 0;
-      for (let i = 0; i < env.length; i++) if (env[i]) { sx += env[i] * Math.cos(w * t[i]); sy += env[i] * Math.sin(w * t[i]); }
-      const R = sx * sx + sy * sy;
-      if (R > bestR) { bestR = R; best = b; }
-    }
-    if (Math.abs(best - Math.round(best)) < 0.2) best = Math.round(best); // la plupart des morceaux ont un tempo entier
-    return Math.round(best * 100) / 100;
-  },
-};
+const DSP = Analyse.DSP; // FFT, attaques, tempo : voir analyse.js
 
-// Analyses ponctuelles d'un morceau : tempo de l'extrait (Apple) et palette de la pochette
+// Analyses ponctuelles d'un morceau (une fois, résultat gardé en cache par le Mac) :
+// tempo + caractère du son sur l'extrait Apple de 30 s, couleurs de la pochette.
 const Analyzer = {
   done: new Set(),
   async maybeRun(key, needs) {
-    if (needs.tempo && !this.done.has(key + "|t")) { this.done.add(key + "|t"); this.previewTempo(key).catch(() => {}); }
-    if (needs.palette && !this.done.has(key + "|p")) { this.done.add(key + "|p"); this.coverPalette(key).catch(() => {}); }
+    if (needs.audio && !this.done.has(key + "|a")) { this.done.add(key + "|a"); this.previewAudio(key).catch(e => console.warn("analyse extrait", e)); }
+    if (needs.palette && !this.done.has(key + "|p")) { this.done.add(key + "|p"); this.coverColors(key).catch(e => console.warn("analyse pochette", e)); }
   },
-  async previewTempo(key) {
+  async previewAudio(key) {
     const r = await fetch(`/api/music/preview?key=${encodeURIComponent(key)}`);
     if (!r.ok) return;
     const buf = await r.arrayBuffer();
@@ -1142,53 +1289,20 @@ const Analyzer = {
     const audio = await new Promise((res, rej) => { const p = ctx.decodeAudioData(buf, res, rej); if (p && p.then) p.then(res, rej); });
     const ch = audio.numberOfChannels, len = audio.length, data = new Float32Array(len);
     for (let c = 0; c < ch; c++) { const d = audio.getChannelData(c); for (let i = 0; i < len; i++) data[i] += d[i] / ch; }
-    const N = 1024, H = 512, onset = DSP.makeOnset(audio.sampleRate, N), env = [];
-    for (let i = 0; i + N <= len; i += H) env.push(onset(data.subarray(i, i + N)).flux);
-    const fps = audio.sampleRate / H, clean = DSP.clean(Float32Array.from(env), fps);
-    const bpm = DSP.refine(clean, clean.map((_, i) => i / fps), DSP.tempo(clean, fps));
-    await api("POST", "/api/music/analysis", { key, bpm });
+    await new Promise(r => setTimeout(r, 0));
+    const { bpm, features } = Analyse.analyseAudio(data, audio.sampleRate);
+    await api("POST", "/api/music/analysis", { key, bpm, features });
   },
-  async coverPalette(key) {
+  async coverColors(key) {
     const img = new Image();
     img.src = `/api/music/cover?key=${encodeURIComponent(key)}`;
     await img.decode();
-    const c = document.createElement("canvas"); c.width = c.height = 48;
-    const g = c.getContext("2d"); g.drawImage(img, 0, 0, 48, 48);
-    const px = g.getImageData(0, 0, 48, 48).data, pts = [];
-    for (let i = 0; i < px.length; i += 4) {
-      const r = px[i] / 255, gg = px[i + 1] / 255, b = px[i + 2] / 255, mx = Math.max(r, gg, b), mn = Math.min(r, gg, b);
-      const s = mx ? (mx - mn) / mx : 0;
-      if (s > 0.28 && mx > 0.22) pts.push([r, gg, b, s * mx]);
-    }
-    let palette;
-    if (pts.length < 60) palette = ["2700K", "#ffb36b", "4000K"]; // pochette en noir et blanc : blancs chauds
-    else {
-      // k-moyennes (k = 5)
-      let cen = Array.from({ length: 5 }, (_, i) => pts[Math.floor(((i + 0.5) * pts.length) / 5)].slice(0, 3));
-      let asg = new Array(pts.length).fill(0);
-      for (let it = 0; it < 10; it++) {
-        pts.forEach((p, i) => { let bd = 9, bi = 0; cen.forEach((q, j) => { const d = (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 + (p[2] - q[2]) ** 2; if (d < bd) { bd = d; bi = j; } }); asg[i] = bi; });
-        cen = cen.map((q, j) => { const m = pts.filter((_, i) => asg[i] === j); return m.length ? [0, 1, 2].map(k => m.reduce((a, p) => a + p[k], 0) / m.length) : q; });
-      }
-      let groups = cen.map((q, j) => { const m = pts.filter((_, i) => asg[i] === j); return { q, w: m.reduce((a, p) => a + p[3], 0) }; }).filter(x => x.w > 0).sort((a, b) => b.w - a.w);
-      groups = groups.filter(g => g.w >= 0.12 * groups[0].w); // ignore les petites zones (bords, mélanges)
-      const hues = [];
-      palette = [];
-      for (const { q } of groups) {
-        // couleur « lumière » : même teinte, saturée et à pleine luminosité
-        const [r, gg, b] = q, mx = Math.max(r, gg, b), mn = Math.min(r, gg, b), d = mx - mn;
-        let h = 0;
-        if (d) h = mx === r ? ((gg - b) / d) % 6 : mx === gg ? (b - r) / d + 2 : (r - gg) / d + 4;
-        h = (h * 60 + 360) % 360;
-        if (hues.some(x => Math.min(Math.abs(x - h), 360 - Math.abs(x - h)) < 22)) continue;
-        hues.push(h);
-        const s = Math.max(0.65, d / mx), f = n => { const k = (n + h / 60) % 6; return 1 - s * Math.max(0, Math.min(k, 4 - k, 1)); };
-        palette.push("#" + [f(5), f(3), f(1)].map(v => Math.round(v * 255).toString(16).padStart(2, "0")).join(""));
-        if (palette.length === 4) break;
-      }
-      if (palette.length === 1) palette.push("2700K");
-    }
-    await api("POST", "/api/music/analysis", { key, palette });
+    const S = 128, c = document.createElement("canvas"); c.width = c.height = S;
+    const g = c.getContext("2d", { willReadFrequently: true });
+    g.imageSmoothingEnabled = true; g.imageSmoothingQuality = "high";
+    g.drawImage(img, 0, 0, S, S);
+    const cover = Analyse.coverPalette(g.getImageData(0, 0, S, S).data, S, S);
+    await api("POST", "/api/music/analysis", { key, cover });
   },
 };
 
@@ -1242,7 +1356,7 @@ const Mic = {
     const fps = (n - 1) / ((this.times[n - 1] - this.times[0]) / 1000);
     const env = DSP.clean(Float32Array.from(this.env), fps);
     // tempo : celui du serveur s'il est fiable (base, extrait, calage), sinon mesuré au micro
-    const bpm = sy.tempo && !/estim/.test(sy.tempo.source) ? sy.tempo.bpm : DSP.refine(env, this.times.map(posAt), DSP.tempo(env, fps));
+    const bpm = sy.tempo && !/estim|incertain/.test(sy.tempo.source) ? sy.tempo.bpm : DSP.refine(env, this.times.map(posAt), DSP.tempo(env, fps));
     const period = 60 / bpm;
     let sx = 0, syy = 0, se = 0;
     for (let i = 0; i < n; i++) {
