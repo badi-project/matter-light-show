@@ -6,11 +6,19 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, unlinkSyn
 import { dirname, extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
+import { spawn } from "node:child_process";
+import { statSync } from "node:fs";
 import { MatterHub } from "./lib/matter.mjs";
+import { DeviceHub } from "./lib/devices.mjs";
+import { WizDriver } from "./lib/drivers/wiz.mjs";
+import { HomeAssistantDriver } from "./lib/drivers/homeassistant.mjs";
+import { Zigbee2MqttDriver } from "./lib/drivers/zigbee2mqtt.mjs";
 import { Dispatcher, Player, displayColor, resolveStep } from "./lib/show.mjs";
 import { AppleMusic, SimulatedMusic } from "./lib/music.mjs";
 import { MusicSync } from "./lib/sync.mjs";
 import { Rooms, roomTargets } from "./lib/rooms.mjs";
+import { SERVICE_LOG, installService, serviceInstalled, uninstallService } from "./lib/service.mjs";
+import { RemoteAccess, isLoopback, loginPage, qrSvg } from "./lib/remote.mjs";
 import { arrangeColors, isHex, isKelvin } from "./lib/palette.mjs";
 import { SongInfo } from "./lib/online.mjs";
 import { trackKey } from "./lib/tempo.mjs";
@@ -20,7 +28,6 @@ const DATA = join(ROOT, "data");
 const SHOWS = join(ROOT, "shows");
 const PUBLIC = join(ROOT, "public");
 const PORT = Number(process.env.PORT) || 8321;
-const HOST = process.env.HOST || "127.0.0.1";
 for (const d of [DATA, SHOWS]) mkdirSync(d, { recursive: true });
 
 Logger.level = process.env.MATTER_DEBUG ? "info" : "error";
@@ -41,10 +48,21 @@ const writeJson = (file, data) => {
 const SETTINGS_FILE = join(DATA, "reglages.json");
 const LAMPS_FILE = join(DATA, "lampes.json");
 const ROOMS_FILE = join(DATA, "pieces.json");
+const INTEG_FILE = join(DATA, "systemes.json"); // autres systèmes : WiZ, Home Assistant, Zigbee2MQTT
 const TEMPOS_FILE = join(DATA, "tempos.json");
-const settings = { rate: 10, demo: false, musicLead: 0.15, rhythmIntensity: "auto", ...readJson(SETTINGS_FILE, {}) };
+const ACCESS_FILE = join(DATA, "acces.json"); // clé et code du contrôle depuis le téléphone
+const settings = { rate: 10, demo: false, musicLead: 0.15, rhythmIntensity: "auto", standby: false, stopColor: { color: "2700K", brightness: 60 }, ...readJson(SETTINGS_FILE, {}) };
+// contrôle depuis le téléphone (même Wi-Fi) : coupé par défaut ; Mac gardé éveillé tant qu'il est activé
+settings.remote = { enabled: false, keepAwake: true, ...(settings.remote ?? {}) };
 const lampPrefs = readJson(LAMPS_FILE, {}); // id -> { alias, hidden, order }
 const rooms = new Rooms(readJson(ROOMS_FILE, {}), d => writeJson(ROOMS_FILE, d)); // pièces : lampes, ordre, enceintes
+// autres systèmes domotiques (en plus de Matter)
+const INTEG_DEFAULTS = {
+    wiz: { enabled: false, ips: [] },
+    ha: { enabled: false, url: "", token: "" },
+    z2m: { enabled: false, host: "", port: 1883, username: "", password: "", base: "zigbee2mqtt" },
+};
+const integ = Object.fromEntries(Object.entries(INTEG_DEFAULTS).map(([k, v]) => [k, { ...v, ...(readJson(INTEG_FILE, {})[k] ?? {}) }]));
 
 // ---------------------------------------------------------------- journal
 const logs = [];
@@ -69,9 +87,33 @@ const DEMO_LAMPS = Array.from({ length: 6 }, (_, i) => ({
 }));
 
 const hub = new MatterHub({ storagePath: join(DATA, "matter"), log });
+const devices = new DeviceHub(hub); // Matter + autres systèmes
+const SECRET = "••••••";
+const DRIVERS = {
+    wiz: c => new WizDriver({ log, ips: c.ips, broadcast: process.env.WIZ_BROADCAST || "255.255.255.255", port: Number(process.env.WIZ_PORT) || 38899 }),
+    ha: c => new HomeAssistantDriver({ log, url: c.url, token: c.token }),
+    z2m: c => new Zigbee2MqttDriver({ log, host: c.host, port: c.port, username: c.username, password: c.password, base: c.base }),
+};
+function startIntegration(id) {
+    devices.removeDriver(id);
+    const c = integ[id];
+    if (!c?.enabled) return;
+    const d = DRIVERS[id](c);
+    devices.addDriver(d);
+    d.start().catch(e => d.setState("erreur", e.message));
+}
+function integrationsInfo() {
+    const st = Object.fromEntries(devices.statuses().map(x => [x.id, x]));
+    return Object.fromEntries(
+        Object.entries(integ).map(([id, c]) => [
+            id,
+            { ...c, token: c.token ? SECRET : "", password: c.password ? SECRET : "", status: st[id] ?? { state: c.enabled ? "démarrage…" : "désactivé", count: 0 } },
+        ]),
+    );
+}
 
 function allLamps() {
-    const list = [...hub.getLamps(), ...(settings.demo ? DEMO_LAMPS : [])].map((l, i) => {
+    const list = [...devices.getLamps(), ...(settings.demo ? DEMO_LAMPS : [])].map((l, i) => {
         const p = lampPrefs[l.id] ?? {};
         return { ...l, matterName: l.name, name: p.alias || l.name, hidden: !!p.hidden, order: p.order ?? 1000 + i, room: rooms.roomOf(l.id)?.id ?? null };
     });
@@ -81,7 +123,9 @@ const activeLamps = () => allLamps().filter(l => !l.hidden);
 
 // ---------------------------------------------------------------- aperçu + envoi
 const preview = {}; // lampId -> { on, color, display, brightness }
-const dispatcher = new Dispatcher({ hub, rate: settings.rate, log });
+// débit par passerelle : pont Matter = réglage « Débit max » ; ampoule WiZ, Home Assistant, réseau Zigbee : valeurs sûres
+const busRate = bus => (bus.startsWith("matter:") ? settings.rate : bus.startsWith("wiz:") ? 15 : bus === "ha" ? 15 : bus === "z2m" ? Math.max(settings.rate, 10) : settings.rate);
+const dispatcher = new Dispatcher({ hub: devices, rate: settings.rate, log, busRate });
 
 function applyTargets(targets, fade) {
     const byId = new Map(allLamps().map(l => [l.id, l]));
@@ -91,7 +135,7 @@ function applyTargets(targets, fade) {
         if (!lamp) continue;
         preview[id] = state.on ? { ...state, display: displayColor(state.color, lamp.kind) } : { on: false };
         changes[id] = preview[id];
-        if (!lamp.virtual && hub.hasLamp(id)) dispatcher.setTarget(lamp, state, fade);
+        if (!lamp.virtual && devices.hasLamp(id)) dispatcher.setTarget(lamp, state, fade);
     }
     broadcast("preview", { changes, fade });
 }
@@ -118,6 +162,7 @@ const sync = new MusicSync({
     saveCalib: c => writeJson(TEMPOS_FILE, c),
     rooms,
     getSpeakers: () => activeSpeakers,
+    capacity: (lamps, seconds) => dispatcher.capacity(lamps, seconds),
 });
 
 // enceintes AirPlay en cours de lecture (pour « seulement les pièces où la musique passe »)
@@ -191,6 +236,7 @@ function loadShow(id) {
 
 // ---------------------------------------------------------------- SSE
 const clients = new Set();
+const phoneCount = () => [...clients].filter(c => c.remote).length;
 function broadcast(event, data) {
     const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
     for (const res of clients) res.write(payload);
@@ -201,6 +247,9 @@ function snapshot() {
         nodes: hub.getNodes(),
         lamps: allLamps(),
         rooms: rooms.list(),
+        integrations: integrationsInfo(),
+        service: { mode: serviceMode(), mac: process.platform === "darwin", installed: serviceInstalled() },
+        remote: { enabled: !!settings.remote.enabled, keepAwake: !!settings.remote.keepAwake, phones: phoneCount() },
         shows: listShows(),
         settings,
         player: playerStatus,
@@ -214,13 +263,13 @@ const pushState = () => {
     clearTimeout(stateTimer);
     stateTimer = setTimeout(() => broadcast("state", snapshot()), 150);
 };
-hub.on("changed", () => {
+devices.on("changed", () => {
     dispatcher.forget(); // après un changement de structure/connexion, on renverra tout
     pushState();
 });
 
 // ---------------------------------------------------------------- HTTP
-const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".json": "application/json" };
+const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".json": "application/json", ".png": "image/png" };
 
 function send(res, code, data) {
     res.writeHead(code, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
@@ -235,8 +284,24 @@ async function body(req) {
     return raw ? JSON.parse(raw) : {};
 }
 
+/** Réservé au Mac lui-même (pas depuis le téléphone). */
+function onlyMac(local, what = "Cette action") {
+    if (!local) throw Object.assign(new Error(`${what} se fait sur le Mac lui-même.`), { status: 403 });
+}
+
 const routes = {
     "GET /api/state": () => snapshot(),
+    "GET /api/whoami": async ({ local }) => ({ local }),
+    // contrôle depuis le téléphone : QR code, code et adresses (affichés seulement sur le Mac)
+    "GET /api/remote": async ({ local }) => {
+        onlyMac(local, "L'affichage du QR code");
+        return remoteInfo();
+    },
+    "POST /api/remote/reset": async ({ local }) => {
+        onlyMac(local, "Le changement de clé");
+        remote.reset();
+        return remoteInfo();
+    },
 
     "POST /api/pair": async ({ body }) => {
         const code = body.code;
@@ -316,6 +381,7 @@ const routes = {
         const show = body.show ?? loadShow(body.id);
         if (!show) throw new Error("Show introuvable");
         stopSync();
+        leaveStandby({ resume: false });
         player.play(show, Number(body.from) || 0);
         return { ok: true };
     },
@@ -333,7 +399,10 @@ const routes = {
     "POST /api/music/sync": async ({ body }) => {
         if ("choice" in body) sync.setChoice(body.choice);
         if ("enabled" in body) {
-            if (body.enabled) player.stop();
+            if (body.enabled) {
+                player.stop();
+                leaveStandby({ resume: false });
+            }
             sync.setEnabled(body.enabled);
         }
         saveSyncSettings(); // choix et état gardés au prochain démarrage
@@ -358,6 +427,39 @@ const routes = {
         await music.setAirplay(body.names);
         await refreshSpeakers();
         return music.airplay();
+    },
+
+    // ---------- autres systèmes (WiZ, Home Assistant, Zigbee2MQTT)
+    "GET /api/integrations": async () => integrationsInfo(),
+    "PUT /api/integrations/:id": async ({ params, body }) => {
+        const c = integ[params.id];
+        if (!c) throw new Error("Système inconnu");
+        const keep = (k, v) => (v === SECRET ? c[k] : String(v ?? "").trim());
+        if ("enabled" in body) c.enabled = !!body.enabled;
+        if (params.id === "wiz" && "ips" in body) c.ips = String(body.ips ?? "").split(/[\s,;]+/).filter(x => /^\d{1,3}(\.\d{1,3}){3}$/.test(x)).slice(0, 50);
+        if (params.id === "ha") {
+            if ("url" in body) c.url = String(body.url ?? "").trim();
+            if ("token" in body) c.token = keep("token", body.token);
+        }
+        if (params.id === "z2m") {
+            if ("host" in body) c.host = String(body.host ?? "").trim();
+            if ("port" in body) c.port = Number(body.port) || 1883;
+            if ("username" in body) c.username = String(body.username ?? "").trim();
+            if ("password" in body) c.password = keep("password", body.password);
+            if ("base" in body) c.base = String(body.base ?? "").trim() || "zigbee2mqtt";
+        }
+        writeJson(INTEG_FILE, integ);
+        startIntegration(params.id);
+        pushState();
+        return integrationsInfo()[params.id];
+    },
+    "POST /api/integrations/:id/refresh": async ({ params }) => {
+        const d = devices.drivers.get(params.id);
+        if (!d) throw new Error("Système désactivé");
+        if (d.discover) d.discover();
+        else if (d.refresh) await d.refresh();
+        pushState();
+        return { ok: true };
     },
 
     // ---------- pièces
@@ -446,13 +548,29 @@ const routes = {
         return { ok: true };
     },
     "POST /api/music/calibrate": async ({ body }) => sync.calibrate(body),
-    // relance du serveur (après une mise à jour) : le lanceur « Lancer le show » le redémarre dans la même fenêtre
+    // relance du serveur (après une mise à jour) : le service macOS (ou le lanceur) le redémarre aussitôt
     "POST /api/restart": async () => {
-        if (process.env.SHOW_LAUNCHER !== "1") throw new Error("Redémarrage automatique indisponible : relance « Lancer le show ».");
-        log("info", "Redémarrage du serveur demandé…");
+        if (process.env.SHOW_LAUNCHER !== "1") throw new Error("Redémarrage automatique indisponible : relance « Show lumière ».");
+        log("info", "Redémarrage du logiciel demandé…");
         setTimeout(() => shutdown(75), 400);
         return { ok: true };
     },
+    "GET /api/ping": async () => ({ ok: true, service: serviceMode(), standby: !!settings.standby, pid: process.pid, pages: clients.size - phoneCount() }), // pages ouvertes sur le Mac
+    // marche / arrêt du show : à l'arrêt, toutes les lampes prennent la même couleur
+    "POST /api/power": async ({ body, local }) => {
+        const a = body.action;
+        if (a === "quit" && !local) throw Object.assign(new Error("Depuis le téléphone, utilise « Arrêter » : « Quitter » fermerait le logiciel et tu ne pourrais plus le relancer à distance."), { status: 403 });
+        if (a === "stop") enterStandby();
+        else if (a === "start") leaveStandby();
+        else if (a === "quit") {
+            enterStandby();
+            log("info", "Fermeture du logiciel…");
+            setTimeout(quitAfterDrain, 300);
+        } else throw new Error("Action inconnue");
+        return { ok: true, standby: !!settings.standby };
+    },
+    "POST /api/service/install": async ({ local }) => (onlyMac(local), installServiceNow()),
+    "POST /api/service/uninstall": async ({ local }) => (onlyMac(local), uninstallServiceNow()),
     "POST /api/music/energy": async ({ body }) => {
         sync.setEnergy(body.level);
         return { ok: true };
@@ -489,12 +607,33 @@ const routes = {
             settings.speakerLink = !!body.speakerLink;
             if (settings.speakerLink) refreshSpeakers();
         }
+        if ("stopColor" in body && body.stopColor) {
+            const c = String(body.stopColor.color ?? settings.stopColor?.color ?? "2700K");
+            settings.stopColor = {
+                color: c === "off" || /^#[0-9a-f]{6}$/i.test(c) || /^\d{4,5}K$/i.test(c) ? c : "2700K",
+                brightness: Math.max(1, Math.min(100, Number(body.stopColor.brightness ?? settings.stopColor?.brightness ?? 60))),
+            };
+            if (settings.standby) applyTargets(uniformTargets(), 1);
+        }
         if ("otherRooms" in body) settings.otherRooms = ["blanc", "eteint", "inchange"].includes(body.otherRooms) ? body.otherRooms : "blanc";
         if ("myColors" in body && Array.isArray(body.myColors)) {
             settings.myColors = body.myColors.map(c => String(c)).filter(c => isHex(c) || isKelvin(c)).slice(0, 6);
         }
+        let remoteChanged = false;
+        if (body.remote && typeof body.remote === "object") {
+            const was = !!settings.remote.enabled;
+            if ("enabled" in body.remote) settings.remote.enabled = !!body.remote.enabled;
+            if ("keepAwake" in body.remote) settings.remote.keepAwake = !!body.remote.keepAwake;
+            remoteChanged = was !== settings.remote.enabled;
+        }
         sync.recompute();
         writeJson(SETTINGS_FILE, settings);
+        if (remoteChanged) {
+            if (!settings.remote.enabled) for (const c of clients) if (c.remote) c.end(); // les téléphones sont déconnectés
+            await applyListen().catch(e => log("error", `Ouverture au réseau impossible : ${e.message}`));
+            log("info", settings.remote.enabled ? `📱 Contrôle depuis le téléphone activé : ${remote.links()[0]?.base ?? ""}` : "Contrôle depuis le téléphone désactivé.");
+        }
+        updateKeepAwake();
         pushState();
         return { ok: true };
     },
@@ -521,18 +660,84 @@ function match(method, pathname) {
     return null;
 }
 
+function html(res, code, page) {
+    res.writeHead(code, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
+    res.end(page);
+}
+const MANIFEST = JSON.stringify({
+    name: "Show lumière",
+    short_name: "Lumière",
+    display: "standalone",
+    background_color: "#0d0f14",
+    theme_color: "#0d0f14",
+    icons: [
+        { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+        { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+});
+
 const server = createServer(async (req, res) => {
     const url = new URL(req.url, "http://localhost");
     const path = url.pathname;
+    const local = isLoopback(req.socket.remoteAddress);
+
+    // le Mac lui-même : seulement sous ses propres noms (bloque les sites qui se font passer pour « localhost »)
+    const hostName = String(req.headers.host ?? "").toLowerCase().replace(/:\d+$/, "");
+    if (local && hostName && !remote.knownHosts().has(hostName)) return html(res, 403, "Adresse non reconnue : ouvre http://localhost:" + PORT);
+    // pas de commande envoyée par un autre site
+    if (!["GET", "HEAD"].includes(req.method) && req.headers.origin) {
+        let same = false;
+        try {
+            same = new URL(req.headers.origin).host.toLowerCase() === String(req.headers.host ?? "").toLowerCase();
+        } catch {}
+        if (!same) return send(res, 403, { error: "Requête refusée (envoyée par un autre site)." });
+    }
+
+    // icônes et manifeste (écran d'accueil du téléphone) : publics
+    if (path === "/manifest.webmanifest") {
+        res.writeHead(200, { "Content-Type": "application/manifest+json", "Cache-Control": "no-store" });
+        return res.end(MANIFEST);
+    }
+    const isPublic = /^\/icons\/[\w-]+\.png$/.test(path);
+
+    // téléphone ou autre appareil du réseau : clé (QR code / cookie) ou code à 6 chiffres
+    if (!local && !isPublic) {
+        if (!settings.remote.enabled) {
+            if (path.startsWith("/api/")) return send(res, 403, { error: "Contrôle depuis le téléphone désactivé (Réglages › Téléphone, sur le Mac)." });
+            return html(res, 403, loginPage({ enabled: false }));
+        }
+        if (path === "/api/remote/login" && req.method === "POST") {
+            try {
+                const r = remote.login((await body(req)).pin, req.socket.remoteAddress);
+                res.setHeader("Set-Cookie", remote.cookieHeader());
+                log("info", `📱 Nouvel appareil connecté avec le code (${req.socket.remoteAddress.replace(/^::ffff:/, "")}).`);
+                return send(res, 200, r);
+            } catch (e) {
+                return send(res, e.status ?? 400, { error: e.message });
+            }
+        }
+        const auth = remote.check(req, url);
+        if (!auth.ok) {
+            if (path.startsWith("/api/")) return send(res, 401, { error: "Téléphone pas encore autorisé : scanne le QR code affiché sur le Mac." });
+            return html(res, 401, loginPage({ enabled: true }));
+        }
+        if (auth.setCookie) {
+            res.setHeader("Set-Cookie", remote.cookieHeader());
+            if (auth.fresh) log("info", `📱 Nouvel appareil connecté (${req.socket.remoteAddress.replace(/^::ffff:/, "")}).`);
+        }
+    }
 
     if (path === "/api/events") {
         res.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-store", Connection: "keep-alive" });
         res.write(`event: state\ndata: ${JSON.stringify(snapshot())}\n\n`);
+        res.remote = !local;
         clients.add(res);
+        if (res.remote) pushState(); // le Mac voit qu'un téléphone est connecté
         const ping = setInterval(() => res.write(": ping\n\n"), 20000);
         req.on("close", () => {
             clearInterval(ping);
             clients.delete(res);
+            if (res.remote) pushState();
         });
         return;
     }
@@ -552,10 +757,10 @@ const server = createServer(async (req, res) => {
         const m = match(req.method, path);
         if (!m) return send(res, 404, { error: "Route inconnue" });
         try {
-            const data = await m.handler({ params: m.params, body: req.method === "GET" ? {} : await body(req) });
+            const data = await m.handler({ params: m.params, body: req.method === "GET" ? {} : await body(req), local });
             return send(res, 200, data);
         } catch (e) {
-            return send(res, e.code === 404 ? 404 : 400, { error: e.message });
+            return send(res, e.code === 404 ? 404 : e.status ?? 400, { error: e.message });
         }
     }
 
@@ -569,21 +774,160 @@ const server = createServer(async (req, res) => {
     res.end(readFileSync(file));
 });
 
-server.on("error", e => {
-    if (e.code === "EADDRINUSE") console.error(`\nLe port ${PORT} est déjà utilisé : le show tourne peut-être déjà. Ouvre http://localhost:${PORT}\n`);
-    else console.error(e);
-    process.exit(1);
-});
+let listenBusy = false;
+server.on("error", e => listenBusy || console.error("Serveur :", e.message));
 
-server.listen(PORT, HOST, () => {
-    const shown = HOST === "0.0.0.0" ? "localhost" : HOST === "127.0.0.1" ? "localhost" : HOST;
-    console.log(`\n  ✨ Show lumière Matter prêt → http://${shown}:${PORT}\n     (Ctrl+C pour arrêter)\n`);
-});
+// ---------------------------------------------------------------- écoute : Mac seul, ou tout le réseau local (téléphone)
+const remote = new RemoteAccess({ read: () => readJson(ACCESS_FILE, null), write: d => writeJson(ACCESS_FILE, d), port: PORT, log });
+let listeningHost = null;
+const wantedHost = () => process.env.HOST || (settings.remote.enabled ? "::" : "127.0.0.1");
+function listenOn(host) {
+    return new Promise((resolve, reject) => {
+        const onErr = e => {
+            server.off("listening", onOk);
+            reject(e);
+        };
+        const onOk = () => {
+            server.off("error", onErr);
+            resolve();
+        };
+        server.once("error", onErr);
+        server.once("listening", onOk);
+        listenBusy = true;
+        server.listen(PORT, host);
+    }).finally(() => (listenBusy = false));
+}
+/** (Ré)ouvre le port sur la bonne adresse ; les pages déjà connectées restent connectées. */
+async function applyListen() {
+    const want = wantedHost();
+    if (listeningHost === want) return;
+    if (listeningHost !== null) server.close();
+    let last;
+    for (const h of want === "::" ? ["::", "0.0.0.0"] : [want]) {
+        try {
+            await listenOn(h);
+            listeningHost = want;
+            return;
+        } catch (e) {
+            last = e;
+            if (e.code === "EADDRINUSE") break;
+        }
+    }
+    if (want !== "127.0.0.1" && !process.env.HOST) {
+        settings.remote.enabled = false; // retour au Mac seul
+        writeJson(SETTINGS_FILE, settings);
+        await listenOn("127.0.0.1");
+        listeningHost = "127.0.0.1";
+    }
+    throw last;
+}
+function remoteInfo() {
+    return {
+        enabled: !!settings.remote.enabled,
+        keepAwake: !!settings.remote.keepAwake,
+        listening: listeningHost,
+        pin: remote.pin,
+        phones: phoneCount(),
+        links: remote.links().map(l => ({ kind: l.kind, base: l.base, url: l.url, qr: qrSvg(l.url) })),
+    };
+}
+
+// ---------------------------------------------------------------- marche / arrêt / service en arrière-plan
+/** service = lancé par macOS en arrière-plan ; terminal = fenêtre « Lancer le show » ; manuel = node à la main. */
+function serviceMode() {
+    if (process.env.SHOW_SERVICE === "launchd") return "service";
+    return process.env.SHOW_LAUNCHER === "1" ? "terminal" : "manuel";
+}
+try {
+    if (serviceMode() === "service" && statSync(SERVICE_LOG).size > 5e6) writeFileSync(SERVICE_LOG, ""); // journal raisonnable
+} catch {}
+
+/** Toutes les lampes du show dans la couleur « d'arrêt » (réglable). */
+function uniformTargets() {
+    const c = settings.stopColor ?? { color: "2700K", brightness: 60 };
+    const state = c.color === "off" ? { on: false } : { on: true, color: c.color, brightness: c.brightness ?? 60 };
+    return Object.fromEntries(activeLamps().map(l => [l.id, state]));
+}
+
+function enterStandby() {
+    if (!settings.standby) settings.syncBeforeStop = sync.enabled;
+    player.stop(false);
+    if (sync.enabled) sync.setEnabled(false);
+    applyTargets(uniformTargets(), 2);
+    settings.standby = true;
+    writeJson(SETTINGS_FILE, settings);
+    const c = settings.stopColor ?? {};
+    log("info", `Show arrêté : toutes les lumières ${c.color === "off" ? "éteintes" : `en ${c.color} (${c.brightness} %)`}.`);
+    updateKeepAwake();
+    pushState();
+}
+
+function leaveStandby({ resume = true } = {}) {
+    if (!settings.standby) return;
+    settings.standby = false;
+    if (resume && settings.syncBeforeStop) sync.setEnabled(true);
+    saveSyncSettings();
+    log("info", "Show redémarré.");
+    updateKeepAwake();
+    pushState();
+}
+
+async function quitAfterDrain() {
+    const t0 = Date.now();
+    while (dispatcher.pending > 0 && Date.now() - t0 < 5000) await new Promise(r => setTimeout(r, 200));
+    await new Promise(r => setTimeout(r, 600));
+    shutdown(0); // code 0 : le service ne se relance pas tout seul
+}
+
+// garder le Mac éveillé seulement quand un show tourne (caffeinate s'arrête avec ce processus)
+let caffeinate = null;
+function updateKeepAwake() {
+    if (process.platform !== "darwin") return;
+    const want = (!settings.standby && (sync.enabled || !!playerStatus?.playing)) || (settings.remote.enabled && settings.remote.keepAwake);
+    if (want && !caffeinate) {
+        try {
+            caffeinate = spawn("caffeinate", ["-i", "-w", String(process.pid)], { stdio: "ignore" });
+            caffeinate.on("exit", () => (caffeinate = null));
+            caffeinate.on("error", () => (caffeinate = null));
+        } catch {}
+    } else if (!want && caffeinate) {
+        caffeinate.kill();
+        caffeinate = null;
+    }
+}
+setInterval(updateKeepAwake, 5000);
+
+/** Installe (ou met à jour) le service macOS : démarre avec le Mac, se relance tout seul, sans fenêtre Terminal. */
+function installServiceNow() {
+    installService({ delay: 2 }); // le service prend le relais une fois ce processus-ci fermé (port libéré)
+    log("info", "Passage en arrière-plan : le logiciel redémarre en service macOS…");
+    if (serviceMode() !== "service") setTimeout(() => shutdown(0), 800);
+    return { ok: true };
+}
+
+function uninstallServiceNow() {
+    uninstallService();
+    log("info", "Le logiciel ne démarrera plus tout seul avec le Mac.");
+    return { ok: true };
+}
+
+applyListen()
+    .then(() => {
+        console.log(`\n  ✨ Show lumière Matter prêt → http://localhost:${PORT}\n     (Ctrl+C pour arrêter)\n`);
+        if (settings.remote.enabled) setTimeout(() => log("info", `📱 Contrôle depuis le téléphone : ${remote.links()[0]?.base ?? ""}`), 1500);
+    })
+    .catch(e => {
+        if (e.code === "EADDRINUSE") console.error(`\nLe port ${PORT} est déjà utilisé : le show tourne peut-être déjà. Ouvre http://localhost:${PORT}\n`);
+        else console.error(e);
+        process.exit(1);
+    });
 
 music.start();
-// reprend le mode de synchro choisi la dernière fois
+// reprend le mode de synchro choisi la dernière fois (sauf si le show a été arrêté)
 if (settings.syncChoice) sync.setChoice(settings.syncChoice);
-if (settings.syncEnabled) sync.setEnabled(true);
+if (settings.syncEnabled && !settings.standby) sync.setEnabled(true);
+
+for (const id of Object.keys(integ)) startIntegration(id);
 
 hub.start().catch(e => {
     hub.error = e.message;
@@ -596,6 +940,8 @@ async function shutdown(code = 0) {
     player.stop(false);
     sync.setEnabled(false);
     music.stop();
+    caffeinate?.kill();
+    for (const id of [...devices.drivers.keys()]) devices.removeDriver(id);
     try {
         await hub.close();
     } catch {}

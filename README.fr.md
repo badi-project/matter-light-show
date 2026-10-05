@@ -1,8 +1,8 @@
 # Show lumière Matter 💡🎶
 
-Un petit logiciel qui transforme ton Mac en **contrôleur Matter** et joue des shows de lumière sur tes lampes, synchronisés avec Apple Music, avec une interface web simple pour les composer.
+Un petit logiciel qui transforme ton Mac en **contrôleur Matter** et joue des shows de lumière sur tes lampes, synchronisés avec Apple Music, avec une interface web simple pour les composer — y compris depuis ton téléphone.
 
-Pas de cloud, pas de compte, pas d'API constructeur : tout passe en local, en Matter standard.
+Pas de cloud, pas de compte, pas d'API constructeur : tout passe en local, en Matter standard (et, si tu veux, WiZ, Home Assistant ou Zigbee2MQTT).
 
 🇬🇧 [Read in English](README.md)
 
@@ -31,14 +31,20 @@ Pas de cloud, pas de compte, pas d'API constructeur : tout passe en local, en Ma
    ```
    Range le dossier dans un endroit **qui n'est pas synchronisé avec le cloud**, par exemple ton dossier Applications personnel (`~/Applications`).
    - Évite le Bureau et Documents s'ils sont synchronisés avec iCloud ou OneDrive : quand le disque se remplit, macOS retire les fichiers du Mac pour les garder seulement dans le cloud. Le logiciel ne peut alors plus démarrer, et l'appairage du pont peut être perdu.
-3. **Double-clique** sur `Lancer le show.command`.
-   - La première fois, macOS peut refuser d'ouvrir le fichier (« Apple ne peut pas vérifier… »). Va alors dans **Réglages Système › Confidentialité et sécurité**, descends en bas et clique **« Ouvrir quand même »**.
-   - Si macOS répond que le fichier ne peut pas être exécuté (« droits d'accès »), ouvre le Terminal dans le dossier et lance une fois : `chmod +x "Lancer le show.command"`.
-   - L'installation prend environ une minute, puis le navigateur s'ouvre sur <http://localhost:8321>.
-4. Si macOS demande d'autoriser **Terminal à accéder aux appareils du réseau local**, clique **Autoriser**. Sans cette autorisation, Matter ne peut pas trouver le pont.
-   Pour vérifier plus tard : Réglages Système › Confidentialité et sécurité › Réseau local › Terminal.
+3. **Une seule fois**, ouvre le Terminal dans le dossier et rends l'app et le lanceur exécutables (GitHub ne garde pas ces droits) :
+   ```bash
+   chmod +x "Lancer le show.command" "Show lumière.app/Contents/MacOS/show-lumiere"
+   ```
+4. **Double-clique** sur l'app **`Show lumière`** (dans le dossier ; tu peux la glisser dans le Dock).
+   - Elle installe le logiciel **en arrière-plan** : il démarre avec le Mac, sans fenêtre Terminal, se relance tout seul en cas de souci, et la page <http://localhost:8321> s'ouvre.
+   - La première fois, macOS peut refuser d'ouvrir l'app (« Apple ne peut pas vérifier… ») : elle n'est pas signée. Va alors dans **Réglages Système › Confidentialité et sécurité**, descends en bas et clique **« Ouvrir quand même »**.
+   - `Lancer le show.command` marche toujours (dans une fenêtre Terminal) ; s'il trouve le logiciel en arrière-plan, il ouvre simplement la page.
+5. macOS demande d'autoriser **« node » à accéder aux appareils du réseau local** (et, pour la musique, à **contrôler « Musique »**) : clique **Autoriser** / **OK**. Sans cela, Matter ne trouve pas le pont.
+   Pour vérifier plus tard : Réglages Système › Confidentialité et sécurité › Réseau local (et Automatisation).
 
-> Avec le Terminal, l'équivalent est : `cd` vers le dossier, puis `npm install` et `npm start`.
+> Avec le Terminal, l'équivalent est : `cd` vers le dossier, puis `npm install` et `npm start`. Le fonctionnement en arrière-plan s'active ensuite dans **Réglages › Marche et arrêt**.
+>
+> **Mise à jour** : remplace les fichiers par la nouvelle version (ou `git pull`) en gardant ton dossier `data/`, puis clique **↻** en haut de la page.
 
 ## 2. Appairer le pont Hue (une seule fois)
 
@@ -121,11 +127,23 @@ La première fois, macOS demande si le **Terminal peut contrôler « Musique »*
 - **Débit.** Le pont Hue retransmet chaque commande en Zigbee et encaisse environ 10 commandes par seconde. Le logiciel les étale automatiquement. Il faut jusqu'à 2 commandes par lampe et par étape (couleur + luminosité). Si une étape est trop courte pour le nombre de lampes, un ⚠ s'affiche. Le réglage se trouve dans **Réglages › Débit max**.
 - **Lampes blanches.** Une lampe blanche (White ambiance) n'applique que les blancs et la luminosité. Une ampoule simple n'applique que la luminosité.
 - **Pas accessible via Matter** : effets de dégradé des rubans *gradient*, synchro Hue Entertainment, scènes Hue.
-- **Le Mac doit rester allumé** pendant le show. Le lanceur empêche la mise en veille tant que la fenêtre Terminal est ouverte. Ferme cette fenêtre pour tout arrêter.
-- **Redémarrer** : le bouton **Réglages › Redémarrer le logiciel** relance le serveur (par exemple après une mise à jour), à condition de l'avoir démarré avec `Lancer le show.command`.
-- **Piloter depuis l'iPhone** : lance le logiciel avec `HOST=0.0.0.0 npm start`, puis ouvre `http://<nom-du-mac>.local:8321` sur l'iPhone. Il n'y a pas de mot de passe, donc à réserver à ton réseau personnel.
+- **Arrêter / Démarrer** (en haut de la page) : « Arrêter » coupe le show et la synchro, et **toutes les lampes prennent la même couleur** (réglable dans Réglages › Marche et arrêt, ou « éteintes »). « Démarrer » reprend là où tu en étais. **↻** redémarre le logiciel. Dans Réglages, **Quitter complètement** le ferme : la page affiche alors un bouton **▶ Démarrer le show** qui rouvre l'app *Show lumière* et relance tout (le navigateur demande la première fois s'il peut ouvrir l'app : accepte).
+- **Le Mac doit rester allumé** pendant le show : le logiciel l'empêche de se mettre en veille tant qu'un show ou la synchro tourne, plus quand il est arrêté.
+- **Autres systèmes** (onglet Lampes) :
+  - tout ce qui a un **code Matter** s'appaire comme le pont Hue : pont IKEA DIRIGERA, hubs Aqara, SmartThings, appareils Smart Life / Tuya compatibles Matter, ampoules Nanoleaf, Eve, Govee, WiZ, Meross… Un appareil Matter déjà dans l'app Maison se partage avec « Activer le mode de jumelage ». Le menu « Ton matériel » donne la marche à suivre ;
+  - **lampes Zigbee** de toute marque (IKEA, Innr, Lidl, Ledvance…) : le plus simple est de les ajouter au pont Hue avec l'app Hue, elles arrivent ici par le pont ;
+  - **WiZ** (Wi-Fi) : pilotées directement, trouvées toutes seules ;
+  - **Home Assistant** : toutes ses lampes (Zigbee, Smart Life / Tuya, Z-Wave…) et ses pièces, avec l'adresse et un jeton d'accès longue durée ;
+  - **Zigbee2MQTT** : lampes sur une clé USB Zigbee, via le broker MQTT ; ses groupes servent de pièces ;
+  - **Smart Life / Tuya sans Matter** : passer par Home Assistant (la commande directe demande des clés propres à chaque appareil et le cloud Tuya limite le nombre de commandes).
+  Chaque système a son propre débit : une ampoule WiZ ou Home Assistant n'attend pas le pont Hue.
+- **Piloter depuis l'iPhone** (Mac allumé, même Wi-Fi) : sur le Mac, **Réglages › 📱 Téléphone** › active « Contrôler le show depuis mon téléphone ». Un QR code s'affiche : vise-le avec l'**appareil photo** de l'iPhone, touche le lien, puis dans Safari **Partager › « Sur l'écran d'accueil »** pour avoir l'icône Show lumière comme une app. Tout se pilote depuis le téléphone (shows, synchro, musique, volume, lampes, Arrêter/Démarrer).
+  - Sans QR code : tape l'adresse affichée (`http://<nom-du-mac>.local:8321`) puis le **code à 6 chiffres**.
+  - Personne d'autre ne peut se connecter sans le QR code ou le code ; **« Changer la clé »** déconnecte tous les téléphones (à rescanner).
+  - Le Mac reste éveillé tant que l'option est active (réglable) ; s'il est fermé (écran rabattu) ou éteint, le téléphone ne peut pas le joindre.
+  - Si le Mac demande d'autoriser **« node » à accepter les connexions entrantes**, clique **Autoriser**.
 - **Infos des morceaux** : pour trouver la pochette, l'extrait de 30 s, le genre et le tempo, le logiciel envoie le **titre et l'artiste** du morceau aux API publiques **iTunes Search** et **Deezer** (sans compte ni clé). Les analyses (couleurs, tempo, énergie) sont faites dans ton navigateur et les résultats restent en cache sur ton Mac pendant 30 jours.
-- **Autres réglages** par variables d'environnement : `PORT` (8321 par défaut), `MATTER_DEBUG=1` (journaux détaillés de matter.js), `MUSIC_SIM=1` (lecteur de musique simulé, pour développer sans Mac).
+- **Variables d'environnement** (pour les curieux) : `PORT` (8321 par défaut), `HOST` (adresse d'écoute imposée), `MATTER_DEBUG=1` (journaux détaillés de matter.js), `MUSIC_SIM=1` (lecteur de musique simulé, pour développer sans Mac).
 
 ## 6. Dépannage
 
@@ -136,6 +154,11 @@ La première fois, macOS demande si le **Terminal peut contrôler « Musique »*
 | Les lampes réagissent en retard | Allonge les étapes, réduis le nombre de lampes par étape, ou baisse le débit s'il est au-dessus de 10. |
 | Les lumières ne suivent pas la musique | La musique doit être jouée par l'app Musique **du Mac**. Vérifie aussi l'autorisation *Automatisation › Terminal › Musique*. |
 | Les changements sont décalés par rapport au rythme | Active le **micro** (ou **Taper le tempo**), puis ajuste **Avance des lumières** dans Réglages fins. |
+| La page ne s'ouvre plus | Ouvre l'app **Show lumière** : elle relance le logiciel. Le journal du service est dans `data/serveur.log`. |
+| La musique n'est plus suivie, ou le pont est « injoignable » depuis le passage en arrière-plan | En arrière-plan c'est **« node »** (et non plus Terminal) qui pilote : Réglages Système › Confidentialité et sécurité › **Réseau local** › active « node », et **Automatisation** › node › coche « Musique ». Puis ↻. |
+| Le téléphone n'arrive pas à ouvrir la page | Même Wi-Fi que le Mac ? Mac réveillé ? Dans Réglages › Téléphone, essaie le lien « avec l'adresse IP du Mac ». Pare-feu du Mac : Réglages Système › Réseau › Coupe-feu › autorise « node ». |
+| L'app Show lumière ne fait rien | Elle est bloquée par macOS la première fois : Réglages Système › Confidentialité et sécurité › **Ouvrir quand même**. Ce que fait l'app est noté dans `data/app.log`. |
+| Ne plus lancer au démarrage du Mac | Réglages › Marche et arrêt › **Ne plus démarrer avec le Mac**. |
 | Retirer proprement | Onglet Lampes › **Retirer** : ce contrôleur se désinscrit du pont, qui reste dans l'app Maison. Tu peux ensuite supprimer le dossier. |
 
 ## Tes données restent chez toi
@@ -145,20 +168,24 @@ Tout ce qui est personnel est écrit dans le dossier `data/`, **exclu de Git** (
 | Chemin | Contenu |
 |---|---|
 | `data/matter/` | identité du contrôleur Matter et appairages — **ne le partage jamais** |
+| `data/systemes.json` | réglages des autres systèmes, dont le **jeton Home Assistant** et le mot de passe MQTT — **ne le partage jamais** |
+| `data/acces.json` | clé et code du contrôle depuis le téléphone — **ne le partage jamais** |
 | `data/lampes.json` | noms, ordre et lampes masquées |
 | `data/pieces.json` | tes pièces, leurs lampes et leurs enceintes |
 | `data/reglages.json` | réglages (dont « Mes couleurs ») |
 | `data/tempos.json` | tempos calés |
 | `data/morceaux/` | pochettes, extraits et analyses en cache des morceaux joués |
+| `data/*.log` | journaux du service et de l'app |
 
 Les shows que tu crées sont enregistrés dans `shows/` (exclus de Git aussi, sauf les 4 shows fournis). Pour en partager un, utilise **Exporter**.
 
 ## Fichiers du projet
 
-- `server.mjs`, `lib/` : le contrôleur Matter (bibliothèque open source [matter.js](https://github.com/matter-js/matter.js)), le moteur de show, les pièces, les palettes et la synchro musique.
-- `public/index.html`, `public/analyse.js` : l'interface et les analyses faites dans le navigateur (couleurs de la pochette, tempo, énergie).
+- `Show lumière.app` : la petite app de démarrage (un script, sans signature).
+- `server.mjs`, `lib/` : le contrôleur Matter (bibliothèque open source [matter.js](https://github.com/matter-js/matter.js)), les pilotes WiZ / Home Assistant / Zigbee2MQTT, le moteur de show, les pièces, les palettes, la synchro musique, le service macOS et l'accès depuis le téléphone.
+- `public/` : l'interface, les analyses faites dans le navigateur (couleurs de la pochette, tempo, énergie) et les icônes.
 - `shows/` : les shows fournis (JSON lisible, modifiable à la main ; format décrit dans le [README anglais](README.md#show-file-format)).
 
 ## Licence
 
-[MIT](LICENSE). Projet indépendant, sans lien avec Philips Hue / Signify, Apple ou la Connectivity Standards Alliance.
+[MIT](LICENSE). Le générateur de QR code (`lib/vendor/qrcode.mjs`) est la bibliothèque *QR Code Generator* de Kazuhiko Arase, sous licence MIT. Projet indépendant, sans lien avec Philips Hue / Signify, Apple, IKEA, WiZ, Home Assistant ou la Connectivity Standards Alliance.

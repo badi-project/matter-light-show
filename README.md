@@ -1,8 +1,8 @@
 # Matter Light Show 💡🎶
 
-**Turn your Mac into a local Matter controller and play light shows on your smart lamps — synced to Apple Music.**
+**Turn your Mac into a local Matter controller and play light shows on your smart lamps — synced to Apple Music, controllable from your phone.**
 
-No cloud, no account, no vendor API: the app speaks standard [Matter](https://csa-iot.org/all-solutions/matter/) directly to your lights over your home network. It was built for Philips Hue lamps behind a Hue Bridge, but works with any Matter light.
+No cloud, no account, no vendor API: the app speaks standard [Matter](https://csa-iot.org/all-solutions/matter/) directly to your lights over your home network. It was built for Philips Hue lamps behind a Hue Bridge, but works with any Matter light — and can also drive **WiZ** bulbs, **Home Assistant** lights and **Zigbee2MQTT** devices.
 
 🇫🇷 [Lire en français](README.fr.md) · The web interface is in French.
 
@@ -32,6 +32,9 @@ No cloud, no account, no vendor API: the app speaks standard [Matter](https://cs
   - playlists or songs matching keywords (e.g. "Christmas", "Halloween") start dedicated shows.
 - **Rooms & coherence**: group lamps into rooms (suggested from lamp names, or read from Matter labels when the device provides them), link each room to its AirPlay speakers, then choose one ambiance per room, waves from room to room, a whole room at once, or **only the rooms where music is playing**.
 - **AirPlay volume** per speaker and master volume, right from the Music tab.
+- **Runs in the background** (macOS LaunchAgent): starts with the Mac, no Terminal window, restarts itself if needed. **Stop / Start** button (all lamps fade to one colour of your choice), **↻ restart**, and a small **Show lumière** app to start everything.
+- **Control from your phone**: scan a QR code, add the page to your home screen and drive shows, sync, music, volume and lamps from your iPhone — protected by a secret key / 6-digit code, off by default.
+- **Other systems**: WiZ (Wi-Fi, auto-discovered), Home Assistant (all its lights and areas — Zigbee, Smart Life / Tuya, Z-Wave…), Zigbee2MQTT (groups become rooms). Each gateway has its own command rate, so they never wait for the Hue Bridge.
 - **Rate limiting** built in: commands are spread so a Hue Bridge (~10 commands/s) is never flooded.
 - **Demo mode**: 6 virtual lamps to design shows without any hardware.
 - 4 bundled shows: *Soirée ambiance*, *Chenillard rouge & bleu*, *Halloween — Nuit des monstres*, *Noël enchanté*.
@@ -61,15 +64,24 @@ npm install
 npm start
 ```
 
-Then open <http://localhost:8321>. Already installed? `git pull`, then click **Réglages › Redémarrer le logiciel** (or restart the launcher).
+Then open <http://localhost:8321>. To run it in the background (starts with the Mac, no Terminal window), use **Réglages › Marche et arrêt**.
 
-On macOS you can also double-click **`Lancer le show.command`**: it installs dependencies on first run, stops any older instance, prevents the Mac from sleeping while the show runs, and opens the browser. If macOS says the file can't be executed, run `chmod +x "Lancer le show.command"` once.
+**On macOS, the easy way:** download the folder (**Code › Download ZIP**, or `git clone`), then make the launcher and the app executable once — GitHub doesn't keep that permission:
+
+```bash
+chmod +x "Lancer le show.command" "Show lumière.app/Contents/MacOS/show-lumiere"
+```
+
+Then double-click **`Show lumière`** (you can drag it to the Dock). It installs dependencies on first run, installs the background service, waits for the server and opens the page. The app is a small unsigned script: the first time, macOS will block it — go to **System Settings › Privacy & Security** and click **Open Anyway**. `Lancer le show.command` still works too (in a Terminal window).
+
+**Updating:** replace the files with the new version (or `git pull`), keep your `data/` folder, then click **↻** at the top of the page.
 
 > 💡 Put the folder somewhere that is **not synced to iCloud/OneDrive** (e.g. `~/Applications`). When the disk fills up, macOS may evict synced files and the app — including its Matter pairing — stops working.
 
-macOS will ask for a few permissions the first time — accept them:
-- **Local Network** for Terminal (required for Matter discovery);
-- **Automation › Music** for Terminal (music sync);
+macOS will ask for a few permissions the first time — accept them (in background mode they are granted to **node**, in Terminal mode to **Terminal**):
+- **Local Network** (required for Matter discovery);
+- **Automation › Music** (music sync);
+- **incoming connections** in the firewall (only if you enable phone control);
 - **Microphone** in the browser (only if you enable beat alignment).
 
 ## Pair your lights
@@ -112,12 +124,38 @@ Then, under the colours in the **Musique** tab, choose a **coherence** mode:
 
 To look up cover art, the 30 s preview, genre and BPM, the app sends the **song title and artist** to the public **iTunes Search** and **Deezer** APIs (no account, no key). Colour, tempo and energy analyses run in your browser; results are cached locally for 30 days.
 
+## Background mode, Stop / Start
+
+- **Réglages › Marche et arrêt**: run in the background (LaunchAgent `fr.showlumiere.serveur`, log in `data/serveur.log`) or stop starting with the Mac.
+- **⏻ Arrêter / Démarrer** (top of the page): *Stop* ends the show and the sync and fades **all lamps to one colour** (or off) — *Start* resumes where you were. **↻** restarts the server. **Quitter complètement** shuts it down; the page then shows a **▶ Démarrer le show** button that reopens the *Show lumière* app (`showlumiere://` link).
+- The Mac is kept awake while a show or the sync is running (not when stopped).
+
+## Control from your phone
+
+On the Mac, **Réglages › 📱 Téléphone** › turn on phone control. Scan the QR code with the iPhone camera, open the link, then in Safari **Share › Add to Home Screen** to get a Show lumière icon like an app. Without the QR code, type the address shown (`http://<your-mac>.local:8321`) and the **6-digit code**.
+
+- Off by default; the server only listens on the local network while it is on.
+- Phones need the secret key (from the QR code) or the code — 5 wrong codes lock logins for 5 minutes. **Changer la clé** disconnects every phone.
+- Some actions stay Mac-only (background service, quit). The Mac is kept awake while the option is on (configurable); a closed or sleeping Mac can't be reached.
+
+## Other systems
+
+In **Lampes › Autres systèmes**:
+- anything with a **Matter code** pairs like the Hue Bridge (IKEA DIRIGERA, Aqara, SmartThings, Matter-compatible Smart Life / Tuya, Nanoleaf, Eve, Govee, WiZ, Meross…) — the **Ton matériel** menu gives brand-specific steps;
+- **Zigbee bulbs** of any brand (IKEA, Innr, Lidl, Ledvance…): easiest is to add them to the Hue Bridge;
+- **WiZ** (Wi-Fi): driven directly over UDP, found automatically (optional fixed IPs);
+- **Home Assistant**: all its lights and areas, with its address and a **long-lived access token**;
+- **Zigbee2MQTT**: lights on a USB Zigbee stick via your MQTT broker; its groups become rooms;
+- **Smart Life / Tuya without Matter**: go through Home Assistant.
+
+Tokens and passwords are stored in `data/systemes.json` (never sent back to the page in clear).
+
 ## Configuration
 
 | Variable | Default | Purpose |
 |---|---|---|
 | `PORT` | `8321` | HTTP port |
-| `HOST` | `127.0.0.1` | Set `0.0.0.0` to control the show from a phone on your LAN (`http://<your-mac>.local:8321`). ⚠️ There is no password — only do this on a trusted home network. |
+| `HOST` | – | Force the listening address. By default the server listens on `127.0.0.1`, or on the local network when phone control is enabled (with key / code protection). |
 | `MATTER_DEBUG` | – | Verbose matter.js logs |
 | `MUSIC_SIM` | – | Simulated music player (for development without a Mac) |
 
@@ -130,11 +168,14 @@ Everything personal is written to the `data/` folder, which is **git-ignored**:
 | Path | Contents |
 |---|---|
 | `data/matter/` | Matter controller identity and fabric credentials, paired devices — **never share this** |
+| `data/systemes.json` | Other systems settings, including the **Home Assistant token** and MQTT password — **never share this** |
+| `data/acces.json` | Phone-control key and code — **never share this** |
 | `data/lampes.json` | Lamp names, order, hidden lamps |
 | `data/pieces.json` | Your rooms, their lamps and speakers |
 | `data/reglages.json` | Settings (including *My colours*) |
 | `data/tempos.json` | Calibrated tempos |
 | `data/morceaux/` | Cached cover art, previews and analyses of the songs you played |
+| `data/*.log` | Service and app logs |
 
 Shows you create are saved to `shows/` (also git-ignored, except the 4 bundled ones). Use **Exporter / Importer** to share a show as a `.json` file.
 
@@ -166,8 +207,15 @@ Colours are `#rrggbb`, a colour temperature like `2700K`, or `off`.
 ## Project structure
 
 ```
-server.mjs          HTTP server, REST API + Server-Sent Events, JSON persistence
+Show lumière.app    Small unsigned macOS launcher app (bash script, showlumiere:// URL scheme)
+server.mjs          HTTP server, REST API + Server-Sent Events, JSON persistence, access control
 lib/matter.mjs      Matter controller: pairing, lamp discovery, commands (matter.js)
+lib/devices.mjs     Device hub: Matter + drivers, one command queue per gateway
+lib/drivers/        WiZ (UDP), Home Assistant (REST), Zigbee2MQTT (MQTT) drivers
+lib/mqtt-mini.mjs   Minimal MQTT 3.1.1 client
+lib/service.mjs     macOS LaunchAgent install / uninstall
+lib/remote.mjs      Phone access: key, 6-digit code, QR code, login page
+lib/vendor/         QR Code Generator by Kazuhiko Arase (MIT)
 lib/show.mjs        Show engine: step resolution, player, rate-limited dispatcher
 lib/color.mjs       Colour conversions (hex → CIE xy / hue-sat, Kelvin → mireds)
 lib/palette.mjs     Colour arrangement (gradient / contrast) and shades
@@ -180,6 +228,7 @@ lib/tempo.mjs       Known tempos, BPM normalisation, tap tempo
 lib/sync.mjs        Music sync: beat clock, waves, rooms and accents
 public/index.html   The whole web interface (vanilla JS)
 public/analyse.js   In-browser analyses: cover colours (OKLab), tempo, energy
+public/icons/       Home-screen icons
 shows/              Bundled shows
 ```
 
@@ -201,12 +250,16 @@ shows/              Bundled shows
 | Lamps lag behind | Longer steps, fewer lamps per step, or lower the max rate. |
 | Lights don't follow the music | Music must play in the Music app **of this Mac**; check *Automation › Terminal › Music*. |
 | Lights are off-beat | Enable the microphone (or tap the tempo), then adjust the light lead in *Réglages fins*. |
+| The page doesn't open any more | Open the **Show lumière** app: it restarts the server. Service log: `data/serveur.log`. |
+| Music not followed / bridge unreachable since background mode | In background mode **node** (not Terminal) needs *Local Network* and *Automation › Music* permissions. Then ↻. |
+| The phone can't open the page | Same Wi-Fi? Mac awake? Try the "IP address" link in Réglages › Téléphone; allow **node** in the macOS firewall. |
+| The Show lumière app does nothing | macOS blocks it the first time (System Settings › Privacy & Security › **Open Anyway**); make sure you ran the `chmod` above. Its log is `data/app.log`. |
 
 ## Credits
 
-Built on [matter.js](https://github.com/matter-js/matter.js) (Apache-2.0). Cover art, previews and BPM come from the public iTunes Search and Deezer APIs and belong to their respective owners; they are only cached locally.
+Built on [matter.js](https://github.com/matter-js/matter.js) (Apache-2.0). QR codes by [QR Code Generator](https://github.com/kazuhikoarase/qrcode-generator) (Kazuhiko Arase, MIT). Cover art, previews and BPM come from the public iTunes Search and Deezer APIs and belong to their respective owners; they are only cached locally.
 
-Not affiliated with Philips Hue, Signify, Apple or the Connectivity Standards Alliance.
+Not affiliated with Philips Hue, Signify, Apple, IKEA, WiZ, Home Assistant or the Connectivity Standards Alliance.
 
 ## License
 
