@@ -2,7 +2,15 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0d0f14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lumière">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
 <title>Show lumière</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='14' r='9' fill='%23ffb000'/%3E%3Crect x='12' y='24' width='8' height='5' rx='1.5' fill='%23888'/%3E%3C/svg%3E">
 <style>
@@ -116,6 +124,16 @@ select, .num { background: var(--panel-2); border: 1px solid var(--line); border
 .slider { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
 input[type=range] { accent-color: var(--accent); width: 150px; }
 .addsw { width: 30px; height: 30px; border-radius: 8px; border: 1px dashed #4a5470; background: none; color: var(--muted); }
+.btn.power { border-color: #6b3a3a; }
+.btn.power.start { border-color: var(--accent); color: var(--accent); }
+details.integ { border-top: 1px solid var(--line); padding: 10px 0; }
+details.integ summary { cursor: pointer; }
+details.integ .istatus { margin-left: 6px; }
+.ifield { margin: 8px 0; flex-wrap: wrap; width: 100%; }
+.ifield input.text { flex: 1; min-width: 120px; }
+.offline { position: sticky; top: 0; z-index: 50; margin: 0; padding: 10px 16px; background: #3a1f1f; color: #ffd9d9; border-bottom: 1px solid #6b3a3a; font-size: 14px; }
+.offline-btn { display: inline-block; margin: 6px 8px 0 0; padding: 6px 12px; border-radius: 8px; background: #ffd9d9; color: #3a1f1f; font-weight: 600; text-decoration: none; }
+.muted-off { opacity: .75; font-size: 13px; }
 .subbox { margin-top: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel-2); }
 .subbox h3 { margin: 0 0 8px; font-size: 13px; text-transform: none; letter-spacing: 0; color: var(--text); }
 .subbox a, #roomsSource a { color: var(--accent); }
@@ -185,7 +203,7 @@ ol.help li { margin-bottom: 6px; }
 
 .two > *, .shows-layout > * { min-width: 0; }
 .now .t, .now .muted { overflow-wrap: anywhere; }
-#playlistSel, #syncChoice, #coherence, #otherRooms { max-width: 100%; min-width: 0; }
+#playlistSel, #syncChoice, #coherence, #otherRooms, #brandSel { max-width: 100%; min-width: 0; }
 .kw-row { display: flex; align-items: center; gap: 10px; margin: -4px 14px 12px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
 .kw { flex: 1; min-width: 200px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; }
 .now { display: flex; gap: 14px; align-items: center; margin: 6px 0 12px; }
@@ -228,15 +246,51 @@ details.fine summary { cursor: pointer; color: var(--muted); font-size: 13px; ma
   .show-list { position: static; }
   input[type=range] { width: 110px; }
 }
+/* ---------- téléphone ---------- */
+body.phone .only-mac, body:not(.phone) .only-phone { display: none !important; }
+.qr-wrap { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+.qr { width: 190px; height: 190px; padding: 0; border-radius: 12px; overflow: hidden; background: #fff; flex: none; }
+.qr svg { width: 100%; height: 100%; display: block; }
+.qr-side { flex: 1; min-width: 200px; }
+.pin { font: 700 26px/1.1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 6px; color: var(--text); }
+.urlbox { font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--text); overflow-wrap: anywhere; }
+.phones-on { color: var(--ok); }
+@media (max-width: 640px) {
+  /* pas de flou sur l'en-tête : il ferait de la barre d'onglets (position fixe) une enfant de l'en-tête */
+  header { padding-top: env(safe-area-inset-top); backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(13,15,20,.97); }
+  .bar { padding: 8px 12px; gap: 8px; }
+  .brand { font-size: 17px; }
+  .brand .sub { display: none; }
+  /* onglets en bas de l'écran, comme une app */
+  .tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; border-radius: 0; border-width: 1px 0 0; gap: 2px;
+          padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); background: rgba(13,15,20,.97); backdrop-filter: blur(10px); }
+  .tabs button { flex: 1; padding: 10px 0; font-size: 14px; }
+  main { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  /* ampoules : un bandeau qui défile */
+  .stage { padding: 10px 12px 4px; }
+  .bulbs { flex-wrap: nowrap; overflow-x: auto; gap: 10px; min-height: 0; padding-bottom: 6px; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .bulbs::-webkit-scrollbar { display: none; }
+  .bulb { width: 58px; flex: none; scroll-snap-align: start; }
+  .bulb .glass { width: 36px; height: 36px; }
+  .toast { bottom: calc(84px + env(safe-area-inset-bottom)); }
+  /* pas de zoom automatique de Safari sur les champs */
+  input.text, select, .num, .pair-box input, .name-input, .step-name, input.alias, input.rname, .kw { font-size: 16px; }
+  .card { padding: 14px; }
+  .btn { padding: 8px 12px; }
+  .qr { width: 170px; height: 170px; }
+}
 </style>
 </head>
 <body>
 <header>
   <div class="bar">
-    <div class="brand"><span class="dot"></span> Show lumière <span class="muted small" style="font-weight:400">· Matter</span></div>
+    <div class="brand"><span class="dot"></span> Show lumière <span class="muted small sub" style="font-weight:400">· Matter</span></div>
     <span id="status" class="pill">Démarrage…</span>
     <span id="queue" class="pill hidden"></span>
+    <span id="standbyPill" class="pill hidden" title="Le show est arrêté : les lampes restent dans la couleur d'arrêt">⏾ Show arrêté</span>
     <div class="spacer"></div>
+    <button class="btn small power" id="powerBtn" title="Arrêter le show : toutes les lampes prennent la même couleur">⏻ Arrêter</button>
+    <button class="btn small ghost" id="restartBtn" title="Redémarrer le logiciel">↻</button>
     <button class="btn small" id="allWarm" title="Allumer toutes les lampes en blanc chaud">Blanc chaud</button>
     <button class="btn small" id="allOff" title="Arrêter le show et éteindre toutes les lampes">Tout éteindre</button>
     <nav class="tabs">
@@ -247,6 +301,12 @@ details.fine summary { cursor: pointer; color: var(--muted); font-size: 13px; ma
     </nav>
   </div>
 </header>
+<div id="offline" class="offline hidden">
+  <span class="only-mac"><b>Le logiciel ne répond pas.</b> Il redémarre peut-être (quelques secondes)… S'il a été fermé :
+  <a class="offline-btn" href="showlumiere://demarrer">▶ Démarrer le show</a>
+  <span class="muted-off">(ouvre l'app « Show lumière » ; la page se reconnecte toute seule)</span></span>
+  <span class="only-phone"><b>Le Mac ne répond pas.</b> Il redémarre peut-être, ou il est en veille, éteint, ou sur un autre Wi-Fi que ce téléphone. Dès qu'il est réveillé, la page se reconnecte toute seule.</span>
+</div>
 
 <section class="stage"><div class="bulbs" id="bulbs"></div></section>
 
@@ -288,17 +348,53 @@ details.fine summary { cursor: pointer; color: var(--muted); font-size: 13px; ma
           </div>
         </div>
         <div class="panel card">
-          <h2>Ajouter un appareil Matter</h2>
+          <h2>Ajouter un appareil ou un pont Matter</h2>
           <div class="pair-box">
             <input id="pairCode" placeholder="Code : 1234-567-8901 ou MT:…" autocomplete="off" spellcheck="false">
             <button class="btn primary" id="pairBtn">Appairer</button>
           </div>
-          <ol class="help">
-            <li>Sur l'iPhone, app <b>Maison</b> : ouvre les réglages du <b>pont Hue</b> (ou d'une de ses lampes) et touche <b>« Activer le mode de jumelage »</b>, puis copie le code à 11 chiffres.</li>
-            <li>Si ce bouton n'existe pas (pont ajouté à Maison via HomeKit et non Matter) : app <b>Hue</b> › Réglages › <b>Smart Home / Matter</b> › génère un code d'appairage. C'est la seule étape qui passe par Philips : ensuite, tout le pilotage se fait en Matter.</li>
-            <li>Colle le code ici dans les 15 minutes. Le Mac doit être sur le même réseau Wi-Fi que le pont.</li>
-          </ol>
-          <p class="muted small">Tes lampes restent dans l'app Maison : Matter permet plusieurs contrôleurs en même temps (« multi-admin »).</p>
+          <div class="field" style="margin-top:12px;flex-wrap:wrap;width:100%">Ton matériel
+            <select id="brandSel" style="flex:1 1 180px;min-width:0;max-width:100%;width:100%">
+              <option value="hue">Philips Hue (pont)</option>
+              <option value="maison">Un appareil Matter déjà dans l'app Maison</option>
+              <option value="zigbee">Lampes Zigbee (IKEA, Innr, Lidl, Ledvance…)</option>
+              <option value="ikea">IKEA (hub DIRIGERA)</option>
+              <option value="aqara">Aqara (hub M2, M3…)</option>
+              <option value="smartthings">Samsung SmartThings</option>
+              <option value="smartlife">Smart Life / Tuya</option>
+              <option value="lampe">Ampoule ou ruban Matter (Nanoleaf, Eve, Govee, WiZ, Meross, LIFX…)</option>
+            </select></div>
+          <ol class="help" id="brandHelp"></ol>
+          <p class="muted small">Tes appareils restent dans leurs applications : Matter permet plusieurs contrôleurs en même temps (« multi-admin »). Le Mac doit être sur le même réseau.</p>
+        </div>
+        <div class="panel card" style="margin-top:16px">
+          <h2>Autres systèmes</h2>
+          <p class="muted small" style="margin-top:0">En plus de Matter, pour ce qui n'a pas de code Matter. Tout reste sur ton réseau local.</p>
+          <details class="integ" id="integ-wiz">
+            <summary><b>WiZ</b> · ampoules Wi-Fi <span class="istatus small"></span></summary>
+            <p class="small muted">Ampoules Philips WiZ et compatibles, pilotées directement en Wi-Fi, sans compte. Elles sont trouvées toutes seules ; donne leur adresse IP seulement si la recherche ne les voit pas.</p>
+            <label class="toggle"><input type="checkbox" data-f="enabled"><span class="sw"></span><span style="color:var(--text)">Activer</span></label>
+            <div class="field ifield">Adresses IP <input class="text" data-f="ips" placeholder="facultatif : 192.168.1.40, 192.168.1.41"></div>
+            <div class="row" style="gap:8px"><button class="btn small" data-save>Enregistrer</button><button class="btn small ghost" data-refresh>Rechercher à nouveau</button></div>
+          </details>
+          <details class="integ" id="integ-ha">
+            <summary><b>Home Assistant</b> · Zigbee, Smart Life / Tuya, Z-Wave… <span class="istatus small"></span></summary>
+            <p class="small muted">Si tu as Home Assistant, toutes ses lampes arrivent ici (Zigbee, Smart Life / Tuya, Z-Wave, Wi-Fi…), avec leurs <b>pièces</b>. Jeton : dans Home Assistant, <b>Profil › Sécurité › Jetons d'accès longue durée › Créer un jeton</b>.</p>
+            <label class="toggle"><input type="checkbox" data-f="enabled"><span class="sw"></span><span style="color:var(--text)">Activer</span></label>
+            <div class="field ifield">Adresse <input class="text" data-f="url" placeholder="http://homeassistant.local:8123"></div>
+            <div class="field ifield">Jeton <input class="text" type="password" data-f="token" placeholder="jeton d'accès longue durée" autocomplete="off"></div>
+            <div class="row" style="gap:8px"><button class="btn small" data-save>Enregistrer</button><button class="btn small ghost" data-refresh>Actualiser</button></div>
+          </details>
+          <details class="integ" id="integ-z2m">
+            <summary><b>Zigbee2MQTT</b> · clé USB Zigbee <span class="istatus small"></span></summary>
+            <p class="small muted">Pour des lampes Zigbee reliées à une clé USB (Sonoff, SkyConnect, ConBee…) avec Zigbee2MQTT et un broker MQTT (Mosquitto). Les groupes Zigbee2MQTT servent de pièces.</p>
+            <label class="toggle"><input type="checkbox" data-f="enabled"><span class="sw"></span><span style="color:var(--text)">Activer</span></label>
+            <div class="field ifield">Broker <input class="text" data-f="host" placeholder="adresse, ex. 192.168.1.20"> <input class="text" data-f="port" placeholder="1883" style="width:70px"></div>
+            <div class="field ifield">Identifiant <input class="text" data-f="username" placeholder="facultatif" autocomplete="off"> <input class="text" type="password" data-f="password" placeholder="mot de passe" autocomplete="off"></div>
+            <div class="field ifield">Sujet de base <input class="text" data-f="base" placeholder="zigbee2mqtt"></div>
+            <div class="row" style="gap:8px"><button class="btn small" data-save>Enregistrer</button></div>
+          </details>
+          <p class="muted small"><b>Smart Life / Tuya sans Matter</b> : passe par Home Assistant (intégration Tuya ou « Local Tuya »). La commande directe d'un appareil Tuya demande des clés de chiffrement propres à chaque appareil et le cloud Tuya limite le nombre de commandes : pas adapté à un show en rythme.</p>
         </div>
         <div class="panel card" style="margin-top:16px">
           <h2>Appareils appairés</h2>
@@ -312,7 +408,7 @@ details.fine summary { cursor: pointer; color: var(--muted); font-size: 13px; ma
   <section id="tab-music" class="hidden">
     <div class="two">
       <div class="panel card">
-        <h2>Apple Music sur ce Mac</h2>
+        <h2>Apple Music du Mac</h2>
         <div id="musicNow"></div>
         <div class="transport">
           <button class="btn" data-cmd="previous" title="Morceau précédent">⏮</button>
@@ -355,7 +451,7 @@ details.fine summary { cursor: pointer; color: var(--muted); font-size: 13px; ma
           <div class="small muted" id="roomsInfo" style="margin-top:8px"></div>
         </div>
         <div class="sync-status" id="syncStatus"></div>
-        <div class="mic-box">
+        <div class="mic-box only-mac">
           <label class="toggle"><input type="checkbox" id="micOn"><span class="sw"></span><span style="color:var(--text)">🎤 Caler les lumières sur les temps grâce au micro du Mac</span></label>
           <div class="mic-meter"><div id="micLevel"></div></div>
           <div id="micStatus" class="small muted">Le micro écoute la musique (HomePod, enceintes) pour trouver les temps. Rien n'est enregistré ni envoyé.</div>
@@ -405,10 +501,31 @@ details.fine summary { cursor: pointer; color: var(--muted); font-size: 13px; ma
           <label class="toggle"><input type="checkbox" id="demo"><span class="sw"></span><span style="color:var(--text)">Mode démo (6 lampes virtuelles)</span></label>
           <p class="muted small">Pour composer un show sans être chez toi : les lampes virtuelles n'apparaissent que dans l'aperçu.</p>
         </div>
-        <div style="margin:14px 0">
-          <button class="btn" id="restartSrv">Redémarrer le logiciel</button>
-          <p class="muted small">Après une mise à jour des fichiers : recharge le programme sans fermer la fenêtre Terminal (les lampes restent appairées).</p>
+      </div>
+      <div class="panel card">
+        <h2>Marche et arrêt</h2>
+        <div class="row" style="gap:10px;align-items:center;flex-wrap:wrap">
+          <span style="color:var(--text)">Couleur des lampes à l'arrêt</span>
+          <div class="swatch sm" id="stopSwatch" title="Choisir la couleur d'arrêt"></div>
+          <div class="slider" id="stopBrightRow">Luminosité <input type="range" id="stopBright" min="1" max="100"> <b id="stopBrightVal"></b></div>
         </div>
+        <p class="muted small">Quand tu appuies sur « Arrêter » (en haut), le show et la synchro s'arrêtent et <b>toutes les lampes prennent cette couleur</b>, pour une lumière uniforme. « Démarrer » reprend là où tu en étais.</p>
+        <div class="subbox">
+          <div id="serviceInfo" class="small"></div>
+          <div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">
+            <button class="btn small" id="restartSrv">Redémarrer le logiciel</button>
+            <button class="btn small only-mac" id="serviceInstall">Faire tourner en arrière-plan</button>
+            <button class="btn small ghost only-mac" id="serviceUninstall">Ne plus démarrer avec le Mac</button>
+            <button class="btn small danger only-mac" id="quitSrv" title="Ferme complètement le logiciel (les lampes restent dans la couleur d'arrêt)">Quitter complètement</button>
+          </div>
+        </div>
+      </div>
+      <div class="panel card" id="phoneCard">
+        <h2>📱 Téléphone</h2>
+        <label class="toggle"><input type="checkbox" id="remoteOn"><span class="sw"></span><span style="color:var(--text)">Contrôler le show depuis mon téléphone</span></label>
+        <div id="remoteBody" class="small" style="margin-top:10px"></div>
+        <label class="toggle" id="keepAwakeRow" style="margin-top:12px"><input type="checkbox" id="keepAwake"><span class="sw"></span><span style="color:var(--text)">Empêcher le Mac de se mettre en veille tout seul</span></label>
+        <p class="muted small" id="keepAwakeHelp">Pour que le téléphone trouve toujours le Mac. L'écran peut s'éteindre, mais si tu fermes le Mac (écran rabattu), il se met en veille quand même.</p>
       </div>
       <div class="panel card">
         <h2>Journal</h2>
@@ -485,12 +602,17 @@ function resolveStep(step, lamps) {
 // État de l'application
 // =====================================================================================
 const S = { st: null, tab: "shows", showId: localStorage.getItem("showId") || null, show: null, saveTimer: null };
+// sur le Mac (localhost) ou sur un téléphone / un autre appareil du réseau
+S.local = ["localhost", "127.0.0.1", "[::1]", "::1"].includes(location.hostname);
+document.body.classList.toggle("phone", !S.local);
+fetch("/api/whoami").then(r => r.json()).then(w => { S.local = !!w.local; document.body.classList.toggle("phone", !S.local); if (S.st) renderRemote(); }).catch(() => {});
 const lamps = () => (S.st?.lamps || []);
 const activeLamps = () => lamps().filter(l => !l.hidden);
 
 // ---------- Connexion temps réel ----------
 function connect() {
-  const es = new EventSource("/api/events");
+  try { S.es?.close(); } catch {}
+  const es = S.es = new EventSource("/api/events");
   es.addEventListener("state", e => { S.st = JSON.parse(e.data); renderAll(); });
   es.addEventListener("preview", e => { const { changes, fade } = JSON.parse(e.data); Object.assign(S.st.preview, changes); paintBulbs(fade); });
   es.addEventListener("player", e => { S.st.player = JSON.parse(e.data); renderPlayer(); });
@@ -499,8 +621,21 @@ function connect() {
   es.addEventListener("pending", e => { const n = JSON.parse(e.data); const q = $("#queue"); q.classList.toggle("hidden", n < 4); q.textContent = `${n} commandes en file`; });
   es.addEventListener("log", e => { const l = JSON.parse(e.data); S.st.logs.push(l); renderLog(); if (l.level === "error") toast(l.msg, true); if (l.level === "success") toast(l.msg); });
   es.addEventListener("identify", e => { const id = JSON.parse(e.data).id; const b = document.querySelector(`.bulb[data-id="${CSS.escape(id)}"]`); if (b) { b.classList.remove("blink"); void b.offsetWidth; b.classList.add("blink"); } });
-  es.onerror = () => { $("#status").className = "pill err"; $("#status").textContent = "Serveur arrêté ?"; };
+  es.onopen = () => { clearTimeout(S.offTimer); $("#offline").classList.add("hidden"); };
+  es.onerror = () => {
+    $("#status").className = "pill err"; $("#status").textContent = S.local ? "Serveur arrêté ?" : "Mac injoignable ?";
+    clearTimeout(S.offTimer);
+    S.offTimer = setTimeout(() => $("#offline").classList.remove("hidden"), 2500);
+    // accès retiré (clé changée, contrôle téléphone coupé) : on affiche la page de connexion
+    if (!S.local) fetch("/api/ping", { cache: "no-store" }).then(r => { if (r.status === 401 || r.status === 403) location.href = "/"; }).catch(() => {});
+    if (es.readyState === 2) { clearTimeout(S.retry); S.retry = setTimeout(connect, 3000); }
+  };
 }
+// retour sur la page (téléphone sorti de veille, app rouverte) : on se reconnecte tout de suite si besoin
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && (!S.es || S.es.readyState === 2)) connect();
+  if (document.visibilityState === "hidden" && S.saveTimer && S.show) flushSave();
+});
 
 // =====================================================================================
 // Rendu général
@@ -508,7 +643,7 @@ function connect() {
 let lampSig = "";
 function renderAll() {
   renderMusic();
-  renderStatus(); renderBulbs(); renderShowList(); renderLamps(); renderRooms(); renderNodes(); renderSettings(); renderLog();
+  renderStatus(); renderBulbs(); renderShowList(); renderLamps(); renderRooms(); renderNodes(); renderIntegrations(); renderSettings(); renderPower(); renderRemote(); renderLog();
   // on ne reconstruit l'éditeur que si nécessaire (pour ne pas perdre la saisie en cours)
   const sig = JSON.stringify([activeLamps().map(l => [l.id, l.name, l.kind, l.virtual]), S.st.settings.rate]);
   if (!S.show || !S.st.shows.find(s => s.id === S.showId)) {
@@ -525,7 +660,11 @@ function renderStatus() {
   if (st.matter.error) { el.className = "pill err"; el.textContent = "Matter : erreur"; el.title = st.matter.error; }
   else if (!st.matter.ready) { el.className = "pill"; el.textContent = "Matter : démarrage…"; }
   else if (st.matter.pairing) { el.className = "pill"; el.textContent = "Appairage en cours…"; }
-  else { el.className = "pill ok"; el.textContent = real ? `Matter · ${real} lampe${real > 1 ? "s" : ""}` : (st.settings.demo ? "Mode démo" : "Matter prêt · aucune lampe"); el.title = ""; }
+  else {
+    const mixed = lamps().some(l => l.source && l.source !== "matter");
+    el.className = "pill ok"; el.title = "";
+    el.textContent = real ? `${mixed ? "" : "Matter · "}${real} lampe${real > 1 ? "s" : ""}` : (st.settings.demo ? "Mode démo" : "Matter prêt · aucune lampe");
+  }
 }
 
 function renderBulbs() {
@@ -888,7 +1027,7 @@ function renderLamps() {
       <div class="info">
         <input class="alias" value="${esc(l.name)}" title="Renommer (nom Matter : ${esc(l.matterName)})">
         <div class="small muted" style="padding-left:7px">
-          <span class="badge">${KIND[l.kind] || l.kind}</span>
+          <span class="badge">${KIND[l.kind] || l.kind}</span>${l.source && l.source !== "matter" ? `<span class="badge">${SOURCE[l.source] || l.source}</span>` : ""}
           ${l.virtual ? '<span class="badge">démo</span>' : ""}
           ${l.reachable === false ? '<span class="badge bad">injoignable</span>' : ""}
           ${l.name !== l.matterName ? `<span>· ${esc(l.matterName)}</span>` : ""}
@@ -974,6 +1113,83 @@ $("#roomAdd").onclick = () => {
 $("#roomName").addEventListener("keydown", e => { if (e.key === "Enter") $("#roomAdd").click(); });
 $("#roomAuto").onclick = () => api("POST", "/api/rooms/auto").then(r => toast(r.assigned ? `${r.assigned} lampe${r.assigned > 1 ? "s" : ""} rangée${r.assigned > 1 ? "s" : ""}${r.created ? `, ${r.created} pièce${r.created > 1 ? "s" : ""} créée${r.created > 1 ? "s" : ""}` : ""} (${r.source === "matter" ? "pièces Matter" : "d'après les noms"}). Vérifie et corrige si besoin.` : "Aucune lampe à ranger (toutes ont une pièce, ou leurs noms ne disent rien).")).catch(e => toast(e.message, true));
 
+// ---------- guide d'appairage Matter selon le matériel
+const BRAND_HELP = {
+  hue: [
+    "Sur l'iPhone, app <b>Maison</b> : ouvre les réglages du <b>pont Hue</b> (ou d'une de ses lampes) et touche <b>« Activer le mode de jumelage »</b>, puis copie le code à 11 chiffres.",
+    "Si ce bouton n'existe pas (pont ajouté à Maison via HomeKit et non Matter) : app <b>Hue</b> › Réglages › <b>Smart Home / Matter</b> › génère un code d'appairage. Ensuite, tout le pilotage se fait en Matter.",
+    "Colle le code ci-dessus dans les 15 minutes.",
+  ],
+  maison: [
+    "N'importe quel appareil <b>Matter</b> déjà ajouté à l'app <b>Maison</b> peut être partagé ici : ouvre ses réglages et touche <b>« Activer le mode de jumelage »</b>.",
+    "Copie le code à 11 chiffres et colle-le ci-dessus dans les 15 minutes.",
+  ],
+  zigbee: [
+    "Le plus simple : ajoute ces lampes à ton <b>pont Hue</b> (app Hue › <b>Ajouter une lampe</b> ; pour certaines marques, avec le numéro de série imprimé sur l'ampoule). Elles apparaîtront ici toutes seules, par le pont.",
+    "Sinon : une passerelle Zigbee compatible Matter (IKEA DIRIGERA, Aqara, SmartThings…) à appairer ici, ou une clé USB Zigbee avec Zigbee2MQTT / Home Assistant (carte « Autres systèmes »).",
+  ],
+  ikea: [
+    "Dans l'app <b>IKEA Home smart</b>, ouvre les réglages du hub <b>DIRIGERA</b> et cherche l'option <b>Matter</b> (partager / associer à une autre plateforme) : l'app affiche un code d'appairage.",
+    "Colle-le ci-dessus : les lampes IKEA (Zigbee) arrivent ici par le hub.",
+  ],
+  aqara: [
+    "Dans l'app <b>Aqara Home</b>, ouvre ton hub (M2, M3…) et cherche le <b>pont Matter</b> (« Matter Bridge » / intégrations Matter) : choisis d'ajouter un autre écosystème pour obtenir un code.",
+    "Colle-le ci-dessus : les lampes reliées au hub arrivent ici.",
+  ],
+  smartthings: [
+    "Dans l'app <b>SmartThings</b>, ouvre l'appareil (ou le hub) et cherche le partage <b>Matter</b> avec d'autres services : l'app génère un code d'appairage.",
+    "Colle-le ci-dessus.",
+  ],
+  smartlife: [
+    "Seuls les appareils <b>compatibles Matter</b> (logo Matter sur la boîte) ou derrière une passerelle Tuya compatible Matter peuvent venir ici directement.",
+    "Dans l'app <b>Smart Life</b>, ouvre l'appareil, puis ses réglages (✎ ou ⋯) et cherche <b>Matter</b> / partage vers un autre écosystème : l'app affiche un code. Colle-le ci-dessus.",
+    "Appareils Smart Life sans Matter : passe par <b>Home Assistant</b> (carte « Autres systèmes »).",
+  ],
+  lampe: [
+    "Ampoule ou ruban neuf : le code Matter est imprimé sur l'appareil ou sa notice (11 chiffres, ou QR code « MT:… »).",
+    "Déjà installé dans l'app Maison ou l'app du fabricant : active le <b>mode de jumelage</b> (partage Matter) pour obtenir un nouveau code, puis colle-le ci-dessus.",
+  ],
+};
+function renderBrandHelp() {
+  const k = $("#brandSel").value;
+  $("#brandHelp").innerHTML = (BRAND_HELP[k] ?? BRAND_HELP.hue).map(x => `<li>${x}</li>`).join("");
+}
+$("#brandSel").onchange = renderBrandHelp;
+renderBrandHelp();
+
+// ---------- autres systèmes (WiZ, Home Assistant, Zigbee2MQTT)
+const SOURCE = { matter: "Matter", wiz: "WiZ", ha: "Home Assistant", z2m: "Zigbee2MQTT" };
+function renderIntegrations() {
+  const all = S.st.integrations || {};
+  for (const [id, cfg] of Object.entries(all)) {
+    const box = $(`#integ-${id}`); if (!box) continue;
+    const st = cfg.status || {};
+    const ok = /connecté/.test(st.state || "");
+    box.querySelector(".istatus").innerHTML = cfg.enabled
+      ? `<span class="badge ${st.error ? "bad" : ""}">${esc(st.state || "")}${ok ? ` · ${st.count} lampe${st.count > 1 ? "s" : ""}` : ""}</span>${st.error ? ` <span class="muted">${esc(st.error)}</span>` : ""}`
+      : `<span class="muted">désactivé</span>`;
+    box.querySelectorAll("[data-f]").forEach(inp => {
+      if (inp.dataset.dirty) return;
+      const f = inp.dataset.f, v = cfg[f];
+      if (inp.type === "checkbox") inp.checked = !!v;
+      else if (document.activeElement !== inp) inp.value = Array.isArray(v) ? v.join(", ") : (v ?? "");
+    });
+  }
+}
+document.querySelectorAll("details.integ").forEach(box => {
+  const id = box.id.replace("integ-", "");
+  box.querySelectorAll("[data-f]").forEach(inp => inp.addEventListener("input", () => (inp.dataset.dirty = "1")));
+  const save = () => {
+    const body = {};
+    box.querySelectorAll("[data-f]").forEach(inp => { body[inp.dataset.f] = inp.type === "checkbox" ? inp.checked : inp.value; delete inp.dataset.dirty; });
+    api("PUT", `/api/integrations/${id}`, body).then(r => toast(`${box.querySelector("summary b").textContent} : ${r.status?.state ?? "enregistré"}`)).catch(e => toast(e.message, true));
+  };
+  box.querySelector("[data-save]").onclick = save;
+  box.querySelector("[data-f=enabled]").onchange = save;
+  const rf = box.querySelector("[data-refresh]");
+  if (rf) rf.onclick = () => api("POST", `/api/integrations/${id}/refresh`).then(() => toast("Recherche lancée…")).catch(e => toast(e.message, true));
+});
+
 function renderNodes() {
   const nodes = S.st.nodes;
   $("#nodeList").innerHTML = nodes.length ? nodes.map(n => {
@@ -1005,7 +1221,118 @@ function renderSettings() {
 $("#rate").oninput = e => $("#rateVal").textContent = e.target.value;
 $("#rate").onchange = e => api("PATCH", "/api/settings", { rate: Number(e.target.value) });
 $("#demo").onchange = e => api("PATCH", "/api/settings", { demo: e.target.checked });
-$("#restartSrv").onclick = () => api("POST", "/api/restart").then(() => toast("Redémarrage… la page se reconnecte toute seule.")).catch(e => toast(e.message, true));
+const restartSoft = () => api("POST", "/api/restart").then(() => toast("Redémarrage… la page se reconnecte toute seule.")).catch(e => toast(e.message, true));
+$("#restartSrv").onclick = restartSoft;
+$("#restartBtn").onclick = () => { if (confirm("Redémarrer le logiciel ? (quelques secondes)")) restartSoft(); };
+$("#powerBtn").onclick = () => api("POST", "/api/power", { action: S.st.settings.standby ? "start" : "stop" }).catch(e => toast(e.message, true));
+$("#quitSrv").onclick = () => {
+  if (!confirm("Fermer complètement le logiciel ? Les lampes restent dans la couleur d'arrêt. Pour le relancer, ouvre l'app « Show lumière ».")) return;
+  api("POST", "/api/power", { action: "quit" }).then(() => toast("Logiciel fermé.")).catch(e => toast(e.message, true));
+};
+$("#serviceInstall").onclick = () => {
+  if (!confirm("Faire tourner le logiciel en arrière-plan ? Il démarrera avec le Mac, sans fenêtre Terminal, et se relancera tout seul en cas de souci. La page se reconnecte dans quelques secondes.")) return;
+  api("POST", "/api/service/install").then(() => toast("Passage en arrière-plan… la page se reconnecte toute seule.")).catch(e => toast(e.message, true));
+};
+$("#serviceUninstall").onclick = () => {
+  if (!confirm("Ne plus démarrer avec le Mac ? Le logiciel s'arrête ; tu pourras le relancer avec l'app « Show lumière » ou « Lancer le show ».")) return;
+  api("POST", "/api/service/uninstall").then(() => toast("Le logiciel ne démarrera plus avec le Mac.")).catch(e => toast(e.message, true));
+};
+$("#stopSwatch").onclick = ev => openPicker(ev.currentTarget, { value: S.st.settings.stopColor?.color ?? "2700K", allowOff: true }, v => {
+  if (!v) return;
+  api("PATCH", "/api/settings", { stopColor: { color: v, brightness: Number($("#stopBright").value) || 60 } }).catch(e => toast(e.message, true));
+});
+$("#stopBright").oninput = e => $("#stopBrightVal").textContent = e.target.value + " %";
+$("#stopBright").onchange = e => api("PATCH", "/api/settings", { stopColor: { color: S.st.settings.stopColor?.color ?? "2700K", brightness: Number(e.target.value) } }).catch(err => toast(err.message, true));
+function renderPower() {
+  const set = S.st.settings, stb = !!set.standby;
+  const b = $("#powerBtn");
+  b.textContent = stb ? "▶ Démarrer" : "⏻ Arrêter";
+  b.classList.toggle("start", stb);
+  b.title = stb ? "Reprendre le show (et la synchro si elle était active)" : "Arrêter le show : toutes les lampes prennent la même couleur";
+  $("#standbyPill").classList.toggle("hidden", !stb);
+  const c = set.stopColor ?? { color: "2700K", brightness: 60 };
+  $("#stopSwatch").style.background = c.color === "off" ? "" : disp(c.color);
+  $("#stopSwatch").classList.toggle("off", c.color === "off");
+  $("#stopBrightRow").classList.toggle("hidden", c.color === "off");
+  if (document.activeElement !== $("#stopBright")) { $("#stopBright").value = c.brightness ?? 60; $("#stopBrightVal").textContent = (c.brightness ?? 60) + " %"; }
+  const sv = S.st.service ?? {};
+  const txt = sv.mode === "service" ? "✓ Le logiciel tourne <b>en arrière-plan</b> : il démarre avec le Mac, sans fenêtre Terminal, et se relance tout seul. Pour ouvrir la page : app <b>« Show lumière »</b> ou ce lien en favori."
+    : sv.mode === "terminal" ? "Le logiciel tourne dans une <b>fenêtre Terminal</b>. Passe-le en arrière-plan pour qu'il démarre tout seul avec le Mac (plus besoin de fenêtre)."
+    : "Le logiciel a été lancé à la main.";
+  $("#serviceInfo").innerHTML = txt + (sv.mac ? "" : " <span class='muted'>(fonctionnement en arrière-plan disponible seulement sur Mac)</span>");
+  $("#serviceInstall").classList.toggle("hidden", !sv.mac || sv.mode === "service");
+  $("#serviceUninstall").classList.toggle("hidden", !sv.mac || !sv.installed);
+  $("#restartSrv").classList.toggle("hidden", sv.mode === "manuel");
+  $("#restartBtn").classList.toggle("hidden", sv.mode === "manuel");
+}
+// ---------- Téléphone
+const remoteState = { sig: null, info: null, useIp: false, loading: false };
+async function loadRemoteInfo() {
+  if (remoteState.loading) return;
+  remoteState.loading = true;
+  try { remoteState.info = await api("GET", "/api/remote"); } catch (e) { remoteState.info = null; }
+  remoteState.loading = false;
+  paintRemote();
+}
+function renderRemote() {
+  const r = S.st.remote ?? {};
+  $("#remoteOn").checked = !!r.enabled;
+  $("#keepAwake").checked = !!r.keepAwake;
+  $("#keepAwakeRow").classList.toggle("hidden", !r.enabled);
+  $("#keepAwakeHelp").classList.toggle("hidden", !r.enabled);
+  const sig = JSON.stringify([S.local, r.enabled, r.phones]);
+  if (sig === remoteState.sig) return;
+  remoteState.sig = sig;
+  if (S.local && r.enabled) loadRemoteInfo(); else paintRemote();
+}
+function paintRemote() {
+  const r = S.st.remote ?? {}, box = $("#remoteBody");
+  const phones = r.phones ? `<p class="phones-on">✓ ${r.phones} téléphone${r.phones > 1 ? "s" : ""} connecté${r.phones > 1 ? "s" : ""} en ce moment.</p>` : "";
+  if (!S.local) {
+    box.innerHTML = `<p>✓ Tu pilotes le show <b>depuis ce téléphone</b>. Tout fonctionne comme sur le Mac, tant que le Mac est allumé et sur le même Wi-Fi.</p>
+      <p class="muted">Astuce : dans Safari, touche <b>Partager</b> puis <b>« Sur l'écran d'accueil »</b> pour avoir l'icône Show lumière comme une app.</p>
+      <p class="muted">Pour ajouter un autre téléphone ou changer la clé, va dans ce même réglage sur le Mac.</p>`;
+    return;
+  }
+  if (!r.enabled) {
+    box.innerHTML = `<p class="muted">Active cette option pour piloter les lumières, la musique et les shows depuis ton iPhone (ou une tablette) connecté au <b>même Wi-Fi</b> que le Mac. Un QR code s'affichera ici : il suffit de le scanner avec l'appareil photo. Personne d'autre ne peut se connecter sans ce QR code ou le code à 6 chiffres.</p>`;
+    return;
+  }
+  const info = remoteState.info;
+  if (!info) { box.innerHTML = `<p class="muted">Préparation du QR code…</p>`; return; }
+  const byName = info.links.find(l => l.kind === "nom"), byIp = info.links.find(l => l.kind === "ip");
+  const link = (remoteState.useIp && byIp) || byName || byIp;
+  if (!link) { box.innerHTML = `<p class="warn">Le Mac n'est connecté à aucun réseau Wi-Fi ou Ethernet pour l'instant.</p>`; return; }
+  const other = link === byName ? byIp : byName;
+  box.innerHTML = `
+    <div class="qr-wrap">
+      <div class="qr">${link.qr}</div>
+      <div class="qr-side">
+        <p style="margin-top:0"><b>1.</b> Ouvre l'<b>appareil photo</b> de ton iPhone et vise ce QR code.<br><b>2.</b> Touche le lien qui apparaît : la page s'ouvre dans Safari.<br><b>3.</b> Partager › <b>« Sur l'écran d'accueil »</b> pour la garder comme une app.</p>
+        <p class="muted" style="margin-bottom:4px">Ou tape cette adresse sur le téléphone, puis le code :</p>
+        <div class="urlbox">${esc(link.base)}</div>
+        <div class="pin" style="margin-top:6px">${esc(info.pin)}</div>
+      </div>
+    </div>
+    ${phones}
+    ${other ? `<p class="muted">Le QR code ne s'ouvre pas sur le téléphone ? <a href="#" id="remoteSwap" style="color:var(--accent)">${link === byName ? "Essayer avec l'adresse IP du Mac" : "Revenir à l'adresse par le nom du Mac"}</a>${link === byIp ? " (l'adresse IP peut changer quand la box redémarre)" : ""}.</p>` : ""}
+    <p class="muted">Le téléphone doit être sur le <b>même Wi-Fi</b> que le Mac, et le Mac allumé. Si le Mac demande d'autoriser « node » à <b>accepter les connexions entrantes</b>, clique Autoriser.</p>
+    <div class="row" style="gap:8px;margin-top:8px"><button class="btn small" id="remoteReset" title="Les téléphones déjà connectés devront rescanner le QR code">Changer la clé (déconnecte les téléphones)</button></div>`;
+  const sw = $("#remoteSwap");
+  if (sw) sw.onclick = e => { e.preventDefault(); remoteState.useIp = !remoteState.useIp; paintRemote(); };
+  $("#remoteReset").onclick = async () => {
+    if (!confirm("Changer la clé ? Les téléphones déjà connectés devront rescanner le nouveau QR code.")) return;
+    try { remoteState.info = await api("POST", "/api/remote/reset"); paintRemote(); toast("Nouvelle clé : rescanne le QR code sur tes téléphones."); } catch (e) { toast(e.message, true); }
+  };
+}
+$("#remoteOn").onchange = async e => {
+  const on = e.target.checked;
+  if (!on && !S.local && !confirm("Couper l'accès depuis le téléphone ? Ce téléphone sera déconnecté ; pour le réactiver, il faudra passer par le Mac.")) { e.target.checked = true; return; }
+  try { await api("PATCH", "/api/settings", { remote: { enabled: on } }); if (on) toast("Accès téléphone activé : scanne le QR code."); }
+  catch (err) { e.target.checked = !on; toast(err.message, true); }
+};
+$("#keepAwake").onchange = e => api("PATCH", "/api/settings", { remote: { keepAwake: e.target.checked } }).catch(err => toast(err.message, true));
+
 function renderLog() {
   const box = $("#log");
   box.innerHTML = S.st.logs.slice(-80).map(l => `<div class="${l.level}">${new Date(l.t).toLocaleTimeString("fr-FR")} ${esc(l.msg)}</div>`).join("") || '<span class="muted">Rien pour l\'instant.</span>';
@@ -1027,9 +1354,11 @@ $("#allWarm").onclick = () => api("POST", "/api/direct", { state: { on: true, co
 document.addEventListener("keydown", e => {
   if (e.code === "Space" && S.tab === "shows" && S.show && !["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName)) { e.preventDefault(); togglePlay(); }
 });
-window.addEventListener("beforeunload", () => {
-  if (S.saveTimer && S.show) fetch(`/api/shows/${encodeURIComponent(S.show.id)}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(S.show), keepalive: true });
-});
+const saveOnLeave = () => {
+  if (S.saveTimer && S.show) { clearTimeout(S.saveTimer); S.saveTimer = null; fetch(`/api/shows/${encodeURIComponent(S.show.id)}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(S.show), keepalive: true }); }
+};
+window.addEventListener("beforeunload", saveOnLeave);
+window.addEventListener("pagehide", saveOnLeave);
 
 // =====================================================================================
 // Onglet Musique
