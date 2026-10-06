@@ -53,5 +53,8 @@ NOTES*.md
 LISEZMOI-APP.md
 Server-originaux.md5
 
+# Local list of words the publication audit must never find (your name, e-mail…)
+Scripts/mots-perso.txt
+
 # Marker dropped by Scripts/preparer-publication.command
 .cree-par-preparer-publication
