@@ -40,7 +40,7 @@ rsync -a --delete \
   --exclude '/data/' --exclude '/Server/data/' \
   --exclude '/LISEZMOI-APP.md' --exclude '/Server-originaux.md5' --exclude 'NOTES*.md' \
   --exclude '*.zip' --exclude '*.app' --exclude '*.dmg' --exclude '*.sha256' --exclude '*.log' \
-  --exclude '/LICENSE' --exclude '/Scripts/patch_server.py' \
+  --exclude '/LICENSE' --exclude '/Scripts/patch_server.py' --exclude '/Scripts/mots-perso.txt' \
   "$SRC/" "$DEST/" || fail "La copie a échoué."
 ok "Fichiers copiés (sans données, sans node_modules, sans Node, sans notes perso)"
 
@@ -69,9 +69,17 @@ bad() { printf '  \033[31m✗\033[0m %s\n' "$1"; PROBLEMS=$((PROBLEMS + 1)); }
 FILES="$(find "$DEST" -name .git -prune -o \( -name '.DS_Store' -o -name '*.zip' -o -name '*.log' -o -name '.env*' -o -name '*.pem' -o -name '*.p12' -o -name '*.key' -o -name '*.mobileprovision' -o -name xcuserdata -o -name node_modules -o -name data -o -name Vendor -o -name '*.app' -o -name __pycache__ \) -print)"
 if [ -n "$FILES" ]; then bad "Fichiers qui ne doivent pas être publiés :"; echo "$FILES" | sed 's/^/      /'; fi
 
-# Le pseudo public du dépôt (« badi-project ») est autorisé ; toute autre mention perso est refusée.
-PERSO_RE='badi|megueni|badtanimt|gmail\.com|/Users/'
-PERSO="$(cd "$DEST" && grep -rIniE --exclude=preparer-publication.command --exclude-dir=.git "$PERSO_RE" . 2>/dev/null | sed 's/badi-project//g' | grep -iE "$PERSO_RE" | cut -c1-180)"
+# Mots à ne jamais publier (ton nom, ton adresse e-mail, ton identifiant Mac…) : un par ligne dans
+# Scripts/mots-perso.txt. Ce fichier reste chez toi (il n'est ni copié ni publié). Sans lui, seuls les
+# motifs génériques (/Users/, adresses e-mail courantes) sont cherchés. Le pseudo public du dépôt
+# (variable PSEUDO_PUBLIC, « badi-project » par défaut) est autorisé.
+PERSO_RE='/Users/|/home/[a-z]|[A-Za-z0-9._-]+@(gmail|icloud|me|outlook|hotmail|live|yahoo|orange|free|laposte)\.[a-z]+'
+if [ -f "$SRC/Scripts/mots-perso.txt" ]; then
+  WORDS="$(grep -Ev '^[[:space:]]*(#|$)' "$SRC/Scripts/mots-perso.txt" | paste -sd'|' -)"
+  [ -n "$WORDS" ] && PERSO_RE="$PERSO_RE|$WORDS"
+fi
+ALLOW="${PSEUDO_PUBLIC:-badi-project}"
+PERSO="$(cd "$DEST" && grep -rIniE --exclude=preparer-publication.command --exclude-dir=.git "$PERSO_RE" . 2>/dev/null | sed "s/$ALLOW//g" | grep -iE "$PERSO_RE" | cut -c1-180)"
 if [ -n "$PERSO" ]; then bad "Mentions personnelles trouvées :"; echo "$PERSO" | sed 's/^/      /'; fi
 
 SECRETS="$(grep -rIniE --exclude=package-lock.json --exclude=preparer-publication.command --exclude-dir=.git '(client_secret|BEGIN [A-Z ]*PRIVATE KEY|ghp_[A-Za-z0-9]{20,}|github_pat_|xox[abp]-|AKIA[0-9A-Z]{16}|sk-[A-Za-z0-9]{20,})' "$DEST" 2>/dev/null | cut -c1-180)"
