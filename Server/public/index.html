@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0d0f14">
+<meta name="build" content="__BUILD__">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lumière">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<title>Show lumière</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='14' r='9' fill='%23ffb000'/%3E%3Crect x='12' y='24' width='8' height='5' rx='1.5' fill='%23888'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="brand"><span class="dot"></span> Show lumière <span class="muted small sub" style="font-weight:400">· Matter</span></div>
+    <span id="status" class="pill">Démarrage…</span>
+    <span id="netPill" class="pill hidden" title="Réseau du Mac : seuls les appareils de ce réseau sont affichés et pilotés"></span>
+    <span id="queue" class="pill hidden"></span>
+    <span id="standbyPill" class="pill hidden" title="Le show est arrêté : les lampes restent dans la couleur d'arrêt">⏾ Show arrêté</span>
+    <div class="spacer"></div>
+    <button class="btn small power" id="powerBtn" title="Arrêter le show : toutes les lampes prennent la même couleur">⏻ Arrêter</button>
+    <button class="btn small ghost" id="restartBtn" title="Redémarrer le logiciel">↻</button>
+    <button class="btn small" id="allWarm" title="Allumer toutes les lampes en blanc chaud">Blanc chaud</button>
+    <button class="btn small" id="allOff" title="Arrêter le show et éteindre toutes les lampes">Tout éteindre</button>
+    <nav class="tabs">
+      <button data-tab="shows" class="on">Shows</button>
+      <button data-tab="lamps">Lampes</button>
+      <button data-tab="music">Musique</button>
+      <button data-tab="settings">Réglages</button>
+    </nav>
+  </div>
+</header>
+<div id="offline" class="offline hidden">
+  <span class="only-mac"><b>Le logiciel ne répond pas.</b> Il redémarre peut-être (quelques secondes)… S'il a été fermé :
+  <a class="offline-btn" href="showlumiere://demarrer">▶ Démarrer le show</a>
+  <span class="muted-off">(ouvre l'app « Show lumière » ; la page se reconnecte toute seule)</span></span>
+  <span class="only-phone"><b>Le Mac ne répond pas.</b> Il redémarre peut-être, ou il est en veille, éteint, ou sur un autre Wi-Fi que ce téléphone. Dès qu'il est réveillé, la page se reconnecte toute seule.</span>
+</div>
+
+<section class="stage"><div class="bulbs" id="bulbs"></div></section>
+
+<main>
+  <!-- ================= SHOWS ================= -->
+  <section id="tab-shows">
+    <div class="shows-layout">
+      <aside class="panel show-list">
+        <h3>Mes shows</h3>
+        <div id="showList"></div>
+        <div class="actions">
+          <button class="btn small" id="newShow">+ Nouveau</button>
+          <button class="btn small ghost" id="importShow">Importer…</button>
+          <input type="file" id="importFile" accept=".json,application/json" class="hidden">
+        </div>
+      </aside>
+      <div id="editor"></div>
+    </div>
+  </section>
+
+  <!-- ================= LAMPES ================= -->
+  <section id="tab-lamps" class="hidden">
+    <div class="two">
+      <div class="panel card">
+        <h2>Lampes</h2>
+        <p class="muted small" style="margin-top:0">L'ordre compte pour les palettes (la 1ʳᵉ couleur va à la 1ʳᵉ lampe…). Renomme, réordonne, ou exclus une lampe des shows.</p>
+        <div id="lampList"></div>
+      </div>
+      <div>
+        <div class="panel card" style="margin-bottom:16px" id="netCard">
+          <h2>📶 Réseau</h2>
+          <div id="netBody" class="small"></div>
+        </div>
+        <div class="panel card" style="margin-bottom:16px">
+          <h2>Pièces</h2>
+          <p class="muted small" style="margin-top:0">Pour la <b>cohérence</b> (onglet Musique) : une couleur par pièce, des vagues qui passent d'une pièce à l'autre <b>dans cet ordre</b>, et le show seulement dans les pièces dont l'<b>enceinte</b> joue.</p>
+          <p class="small muted" id="roomsSource"></p>
+          <div id="roomList"></div>
+          <div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">
+            <input id="roomName" class="text" placeholder="Nouvelle pièce (ex. Salon)" style="flex:1;min-width:140px">
+            <button class="btn small" id="roomAdd">Ajouter</button>
+            <button class="btn small ghost" id="roomAuto" title="Range les lampes sans pièce d'après leurs noms (chevet → Chambre, Jardin 1 → Jardin…)">Proposer d'après les noms</button>
+          </div>
+        </div>
+        <div class="panel card">
+          <h2>Ajouter un appareil ou un pont Matter</h2>
+          <div class="pair-box">
+            <input id="pairCode" placeholder="Code : 1234-567-8901 ou MT:…" autocomplete="off" spellcheck="false">
+            <button class="btn primary" id="pairBtn">Appairer</button>
+          </div>
+          <div class="field" style="margin-top:12px;flex-wrap:wrap;width:100%">Ton matériel
+            <select id="brandSel" style="flex:1 1 180px;min-width:0;max-width:100%;width:100%">
+              <option value="hue">Philips Hue (pont)</option>
+              <option value="maison">Un appareil Matter déjà dans l'app Maison</option>
+              <option value="zigbee">Lampes Zigbee (IKEA, Innr, Lidl, Ledvance…)</option>
+              <option value="ikea">IKEA (hub DIRIGERA)</option>
+              <option value="aqara">Aqara (hub M2, M3…)</option>
+              <option value="smartthings">Samsung SmartThings</option>
+              <option value="smartlife">Smart Life / Tuya</option>
+              <option value="lampe">Ampoule ou ruban Matter (Nanoleaf, Eve, Govee, WiZ, Meross, LIFX…)</option>
+            </select></div>
+          <ol class="help" id="brandHelp"></ol>
+          <p class="muted small">Tes appareils restent dans leurs applications : Matter permet plusieurs contrôleurs en même temps (« multi-admin »). Le Mac doit être sur le même réseau.</p>
+        </div>
+        <div class="panel card" style="margin-top:16px">
+          <h2>Autres systèmes</h2>
+          <p class="muted small" style="margin-top:0">En plus de Matter, pour ce qui n'a pas de code Matter. Tout reste sur ton réseau local.</p>
+          <details class="integ" id="integ-wiz">
+            <summary><b>WiZ</b> · ampoules Wi-Fi <span class="istatus small"></span></summary>
+            <p class="small muted">Ampoules Philips WiZ et compatibles, pilotées directement en Wi-Fi, sans compte. Elles sont trouvées toutes seules ; donne leur adresse IP seulement si la recherche ne les voit pas.</p>
+            <label class="toggle"><input type="checkbox" data-f="enabled"><span class="sw"></span><span style="color:var(--text)">Activer</span></label>
+            <div class="field ifield">Adresses IP <input class="text" data-f="ips" placeholder="facultatif : 192.168.1.40, 192.168.1.41"></div>
+            <div class="row" style="gap:8px"><button class="btn small" data-save>Enregistrer</button><button class="btn small ghost" data-refresh>Rechercher à nouveau</button></div>
+          </details>
+          <details class="integ" id="integ-ha">
+            <summary><b>Home Assistant</b> · Zigbee, Smart Life / Tuya, Z-Wave… <span class="istatus small"></span></summary>
+            <p class="small muted">Si tu as Home Assistant, toutes ses lampes arrivent ici (Zigbee, Smart Life / Tuya, Z-Wave, Wi-Fi…), avec leurs <b>pièces</b>. Jeton : dans Home Assistant, <b>Profil › Sécurité › Jetons d'accès longue durée › Créer un jeton</b>.</p>
+            <label class="toggle"><input type="checkbox" data-f="enabled"><span class="sw"></span><span style="color:var(--text)">Activer</span></label>
+            <div class="field ifield">Adresse <input class="text" data-f="url" placeholder="http://homeassistant.local:8123"></div>
+            <div class="field ifield">Jeton <input class="text" type="password" data-f="token" placeholder="jeton d'accès longue durée" autocomplete="off"></div>
+            <div class="row" style="gap:8px"><button class="btn small" data-save>Enregistrer</button><button class="btn small ghost" data-refresh>Actualiser</button></div>
+          </details>
+          <details class="integ" id="integ-z2m">
+            <summary><b>Zigbee2MQTT</b> · clé USB Zigbee <span class="istatus small"></span></summary>
+            <p class="small muted">Pour des lampes Zigbee reliées à une clé USB (Sonoff, SkyConnect, ConBee…) avec Zigbee2MQTT et un broker MQTT (Mosquitto). Les groupes Zigbee2MQTT servent de pièces.</p>
+            <label class="toggle"><input type="checkbox" data-f="enabled"><span class="sw"></span><span style="color:var(--text)">Activer</span></label>
+            <div class="field ifield">Broker <input class="text" data-f="host" placeholder="adresse, ex. 192.168.1.20"> <input class="text" data-f="port" placeholder="1883" style="width:70px"></div>
+            <div class="field ifield">Identifiant <input class="text" data-f="username" placeholder="facultatif" autocomplete="off"> <input class="text" type="password" data-f="password" placeholder="mot de passe" autocomplete="off"></div>
+            <div class="field ifield">Sujet de base <input class="text" data-f="base" placeholder="zigbee2mqtt"></div>
+            <div class="row" style="gap:8px"><button class="btn small" data-save>Enregistrer</button></div>
+          </details>
+          <p class="muted small"><b>Smart Life / Tuya sans Matter</b> : passe par Home Assistant (intégration Tuya ou « Local Tuya »). La commande directe d'un appareil Tuya demande des clés de chiffrement propres à chaque appareil et le cloud Tuya limite le nombre de commandes : pas adapté à un show en rythme.</p>
+        </div>
+        <div class="panel card" style="margin-top:16px">
+          <h2>Appareils appairés</h2>
+          <div id="nodeList"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MUSIQUE ================= -->
+  <section id="tab-music" class="hidden">
+    <div class="two">
+      <div class="panel card">
+        <h2>🎵 Musique</h2>
+        <div class="field" style="width:100%;flex-wrap:wrap;margin:-2px 0 6px">Source <select id="musicSource" style="flex:1;min-width:0"></select></div>
+        <div class="small muted" id="musicSourceInfo" style="margin-bottom:6px"></div>
+        <div id="musicNow"></div>
+        <div class="transport">
+          <button class="btn" data-cmd="previous" title="Morceau précédent">⏮</button>
+          <button class="btn primary" data-cmd="playpause" title="Lecture / pause">⏯</button>
+          <button class="btn" data-cmd="next" title="Morceau suivant">⏭</button>
+        </div>
+        <div class="row" style="margin-top:14px;gap:8px" id="playlistRow">
+          <select id="playlistSel" style="flex:1;min-width:0"><option value="">Choisir une playlist…</option></select>
+          <button class="btn small" id="playPlaylist">▶ Lancer</button>
+        </div>
+        <p class="small muted" id="outputsHint" style="margin-top:14px">Enceintes et sorties audio (AirPlay, Bluetooth, TV…) : carte <a href="#outputsCard" style="color:var(--accent)">🔊 Sorties audio</a> ci-dessous.</p>
+        <details class="fine only-mac" id="spotifyWebBox">
+          <summary>Spotify sur l'iPhone ou une enceinte Spotify Connect</summary>
+          <div id="spotifyWebBody" class="small"></div>
+        </details>
+      </div>
+      <div class="panel card">
+        <h2>Synchro lumières</h2>
+        <label class="toggle"><input type="checkbox" id="syncOn"><span class="sw"></span><span style="color:var(--text);font-size:15px">Synchroniser les lumières avec la musique</span></label>
+        <div class="field" style="margin-top:12px;width:100%">Couleurs <select id="syncChoice" style="flex:1"></select></div>
+        <div class="subbox hidden" id="myColorsBox">
+          <h3>Mes couleurs <span class="muted small" style="font-weight:400">(jusqu'à 6, rangées automatiquement)</span></h3>
+          <div class="row" style="gap:8px" id="myColorsList"></div>
+          <div class="small muted" style="margin-top:8px">Sur les lampes : <span id="myColorsOrder"></span></div>
+          <button class="btn small" id="myColorsApply" style="margin-top:8px" title="Diffuse ces couleurs tout de suite, sans musique (la synchro s'arrête)">Diffuser maintenant (ambiance fixe)</button>
+        </div>
+        <div class="subbox" id="coherenceBox">
+          <div class="field" style="width:100%;flex-wrap:wrap;margin:0">Cohérence
+            <select id="coherence" style="flex:1">
+              <option value="off">Désactivée : lampes mélangées dans toute la maison</option>
+              <option value="ambiance">Une ambiance par pièce (couleur dominante + nuances)</option>
+              <option value="vague">Vagues de pièce en pièce (dans l'ordre des pièces)</option>
+              <option value="piece">Une pièce entière d'un coup (les pièces se répondent)</option>
+            </select></div>
+          <label class="toggle" style="margin-top:10px"><input type="checkbox" id="speakerLink"><span class="sw"></span><span style="color:var(--text)">Seulement les pièces où la musique passe</span></label>
+          <div class="field" id="otherRoomsRow" style="margin-top:8px;flex-wrap:wrap">Autres pièces
+            <select id="otherRooms">
+              <option value="blanc">Blanc doux</option>
+              <option value="eteint">Éteintes</option>
+              <option value="inchange">Ne pas toucher</option>
+            </select></div>
+          <div class="small muted" id="roomsInfo" style="margin-top:8px"></div>
+        </div>
+        <div class="sync-status" id="syncStatus"></div>
+        <div class="mic-box only-mac">
+          <label class="toggle"><input type="checkbox" id="micOn"><span class="sw"></span><span style="color:var(--text)">🎤 Caler les lumières sur les temps grâce au micro du Mac</span></label>
+          <div class="mic-meter"><div id="micLevel"></div></div>
+          <div id="micStatus" class="small muted">Le micro écoute la musique (HomePod, enceintes) pour trouver les temps. Rien n'est enregistré ni envoyé.</div>
+        </div>
+        <div class="field" style="margin:12px 0 4px;width:100%;flex-wrap:wrap">Intensité du rythme
+          <select id="rhythmIntensity">
+            <option value="auto">Automatique (selon la musique)</option>
+            <option value="doux">Douce</option>
+            <option value="moyen">Moyenne</option>
+            <option value="fort">Forte</option>
+            <option value="aucun">Aucune (couleurs seulement)</option>
+          </select></div>
+        <div class="row" style="margin-top:10px;gap:8px">
+          <button class="btn small" id="saveAuto" title="Crée un show modifiable avec les couleurs automatiques de ce morceau">Enregistrer ces couleurs comme show</button>
+        </div>
+        <details class="fine">
+          <summary>Réglages fins</summary>
+          <button class="tap" id="tapBtn">Taper le tempo ici</button>
+          <p class="muted small" style="margin:8px 0">Sans micro : tape 8 fois ou plus sur les temps du morceau (ou touche T). <button class="btn small ghost" id="resetCalib">Oublier le calage de ce morceau</button></p>
+          <div class="slider" style="margin-top:8px"><span style="color:var(--text)">Avance des lumières</span> <input type="range" id="lead" min="-1" max="1" step="0.05"> <b id="leadVal"></b></div>
+          <p class="muted small">Si les lampes changent après le temps, augmente ; si elles changent avant, diminue.</p>
+        </details>
+      </div>
+    </div>
+    <div class="panel card" style="margin-top:16px" id="outputsCard">
+      <div class="row" style="justify-content:space-between;align-items:center"><h2 style="margin:0">🔊 Sorties audio</h2><button class="btn small ghost" id="outputsRefresh">Actualiser</button></div>
+      <div id="outputsBody" class="out-grid small"><p class="muted">Chargement…</p></div>
+    </div>
+    <div class="panel card" style="margin-top:16px">
+      <h2>Comment ça marche</h2>
+      <ol class="help">
+        <li>Joue ta musique sur le Mac avec <b>Apple Music</b>, <b>Spotify</b>, <b>Deezer</b>, Tidal, Qobuz ou un lecteur web (YouTube Music, Deezer dans le navigateur…) : en <b>Source automatique</b>, le show suit l'app qui joue. Avec Apple Music, choisis tes HomePod / enceintes dans <b>Sorties AirPlay</b>. Pour suivre Spotify joué depuis l'iPhone ou une enceinte, connecte ton <b>compte Spotify</b> (en bas de la carte Musique).</li>
+        <li>Active la <b>synchro</b> et choisis un mode <b>Auto</b> : <b>complet</b> (pochette + couleurs d'ambiance selon le genre, le style et le tempo), <b>sobre</b> (pochette + 2 couleurs), <b>pochette</b> (uniquement ses couleurs) ou <b>nuances</b> (les couleurs de la pochette en clair, foncé, vif, pastel ou teintes voisines, selon le genre). Le <b>genre</b> (app Musique, Apple, Deezer) règle aussi le motif des accents : chaque temps pour la dance et la K-pop, temps 2 et 4 pour le rock, respiration lente pour le classique… En complet et sobre, une playlist « Noël » ou « Halloween » lance les shows dédiés. Les curseurs sous chaque enceinte AirPlay règlent son volume.</li>
+        <li><b>Mes couleurs</b> : choisis jusqu'à 6 couleurs, elles sont rangées automatiquement (dégradé, ou contraste si le morceau est énergique). <b>Cohérence</b> : une couleur par pièce, des vagues d'une pièce à l'autre, ou une pièce entière à la fois, éventuellement seulement là où la musique passe. Les pièces se règlent dans l'onglet <b>Lampes</b>.</li>
+        <li>Si tu choisis un <b>show</b>, ses couleurs sont gardées mais son <b>rythme suit la musique</b> : à chaque temps, un groupe de lampes change et la couleur se propage en vague dans la pièce.</li>
+        <li>Pour tomber pile sur les temps, active le <b>micro</b> : il écoute quelques secondes et cale tout seul les lumières. Le tempo est aussi mesuré sur l'extrait du morceau fourni par Apple. Laisse cette page ouverte.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ================= RÉGLAGES ================= -->
+  <section id="tab-settings" class="hidden">
+    <div class="two">
+      <div class="panel card">
+        <h2>Réglages</h2>
+        <div style="margin:14px 0">
+          <div class="slider"><span style="color:var(--text)">Débit max vers le pont</span> <input type="range" id="rate" min="2" max="30" step="1"> <b id="rateVal"></b> cmd/s</div>
+          <p class="muted small">Le pont Hue relaie chaque commande Matter en Zigbee : au-delà d'environ 10 commandes par seconde, il met les suivantes en file d'attente et le show prend du retard. Augmente seulement si tout reste fluide.</p>
+        </div>
+        <div style="margin:14px 0">
+          <label class="toggle"><input type="checkbox" id="demo"><span class="sw"></span><span style="color:var(--text)">Mode démo (6 lampes virtuelles)</span></label>
+          <p class="muted small">Pour composer un show sans être chez toi : les lampes virtuelles n'apparaissent que dans l'aperçu.</p>
+        </div>
+        <div class="subbox small" id="appVersion" title="Version du logiciel Show lumière en service sur le Mac"></div>
+      </div>
+      <div class="panel card">
+        <h2>Marche et arrêt</h2>
+        <div class="row" style="gap:10px;align-items:center;flex-wrap:wrap">
+          <span style="color:var(--text)">Couleur des lampes à l'arrêt</span>
+          <div class="swatch sm" id="stopSwatch" title="Choisir la couleur d'arrêt"></div>
+          <div class="slider" id="stopBrightRow">Luminosité <input type="range" id="stopBright" min="1" max="100"> <b id="stopBrightVal"></b></div>
+        </div>
+        <p class="muted small">Quand tu appuies sur « Arrêter » (en haut), le show et la synchro s'arrêtent et <b>toutes les lampes prennent cette couleur</b>, pour une lumière uniforme. « Démarrer » reprend là où tu en étais.</p>
+        <div class="subbox">
+          <div id="serviceInfo" class="small"></div>
+          <div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">
+            <button class="btn small" id="restartSrv">Redémarrer le logiciel</button>
+            <button class="btn small only-mac" id="serviceInstall">Faire tourner en arrière-plan</button>
+            <button class="btn small ghost only-mac" id="serviceUninstall">Ne plus démarrer avec le Mac</button>
+            <button class="btn small danger only-mac" id="quitSrv" title="Ferme complètement le logiciel (les lampes restent dans la couleur d'arrêt)">Quitter complètement</button>
+          </div>
+        </div>
+      </div>
+      <div class="panel card" id="phoneCard">
+        <h2>📱 Téléphone</h2>
+        <label class="toggle"><input type="checkbox" id="remoteOn"><span class="sw"></span><span style="color:var(--text)">Contrôler le show depuis mon téléphone</span></label>
+        <div id="remoteBody" class="small" style="margin-top:10px"></div>
+        <label class="toggle" id="keepAwakeRow" style="margin-top:12px"><input type="checkbox" id="keepAwake"><span class="sw"></span><span style="color:var(--text)">Empêcher le Mac de se mettre en veille tout seul</span></label>
+        <p class="muted small" id="keepAwakeHelp">Pour que le téléphone trouve toujours le Mac. L'écran peut s'éteindre, mais si tu fermes le Mac (écran rabattu), il se met en veille quand même.</p>
+      </div>
+      <div class="panel card">
+        <h2>Journal</h2>
+        <div class="log" id="log"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="pop hidden" id="pop"></div>
+<div class="toast hidden" id="toast"></div>
+
+<script src="analyse.js"></script>
+<script src="js/base.js"></script>
+<script src="js/shows.js"></script>
+<script src="js/lamps.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/music.js"></script>
+<script src="js/analysis.js"></script>
+</body>
+</html>
