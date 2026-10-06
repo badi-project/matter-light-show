@@ -1,22 +1,57 @@
-# Dependencies
-node_modules/
-
-# Personal data — NEVER commit:
-#  - data/matter     : Matter controller identity (fabric keys, paired devices)
-#  - data/*.json     : lamp names, rooms & speakers, settings, tempos, other-system tokens (Home Assistant, MQTT), phone-access key
-#  - data/morceaux/  : cached cover art / 30 s previews of the songs you play
-data/
-
-# Shows you create yourself stay local too (the 4 bundled shows are tracked explicitly)
-shows/*.json
-!shows/chenillard-rouge.json
-!shows/halloween.json
-!shows/noel.json
-!shows/soiree-ambiance.json
-
-# OS / editor noise
+# macOS / editors
 .DS_Store
 *.tmp
-*.log
 .vscode/
 .idea/
+__pycache__/
+*.pyc
+
+# Dependencies and generated programs (rebuilt by Scripts/preparer.command)
+node_modules/
+/Vendor/
+
+# Build output
+/build/
+/build-release/
+DerivedData/
+
+# Xcode: personal settings
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+
+# Personal data — NEVER commit.
+# The Mac app keeps it in ~/Library/Application Support/Show lumière/, outside this repository.
+# When run from the source it goes to Server/data/:
+#  - data/matter     : Matter controller identity (fabric keys, paired devices)
+#  - data/*.json     : lamp names, rooms & speakers, settings, tempos, other-system tokens, phone-access key
+#  - data/morceaux/  : cached cover art / 30 s previews of the songs you play
+data/
+*.log
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.mobileprovision
+
+# Shows you create yourself stay local too (the 4 bundled shows are tracked explicitly)
+/Server/shows/*.json
+!/Server/shows/chenillard-rouge.json
+!/Server/shows/halloween.json
+!/Server/shows/noel.json
+!/Server/shows/soiree-ambiance.json
+
+# Deliverables: they go in a GitHub Release, never in the repository
+*.zip
+*.app
+*.dmg
+*.sha256
+
+# Personal working files
+NOTES*.md
+LISEZMOI-APP.md
+Server-originaux.md5
+
+# Marker dropped by Scripts/preparer-publication.command
+.cree-par-preparer-publication
