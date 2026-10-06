@@ -1,0 +1,603 @@
+{
+  "id": "halloween",
+  "name": "Halloween — Nuit des monstres",
+  "loop": true,
+  "speed": 1,
+  "tempo": {
+    "bpm": 119
+  },
+  "music": {
+    "match": [
+      "halloween",
+      "thriller",
+      "ghostbusters",
+      "zombie",
+      "spooky",
+      "scary",
+      "skeleton",
+      "squelette",
+      "witch",
+      "sorciere",
+      "vampire",
+      "werewolves",
+      "loup garou",
+      "fantome",
+      "horror",
+      "horreur",
+      "creepy",
+      "bloody mary",
+      "somebodys watching me",
+      "dead man",
+      "reaper",
+      "addams",
+      "beetlejuice",
+      "exorcist",
+      "monster mash"
+    ]
+  },
+  "steps": [
+    {
+      "name": "Brume violette",
+      "duration": 8,
+      "fade": 4,
+      "mode": "all",
+      "all": {
+        "on": true,
+        "color": "#7a00ff",
+        "brightness": 35
+      },
+      "palette": {
+        "colors": [
+          "#ff0000",
+          "#00d84a",
+          "#2b50ff"
+        ],
+        "brightness": 80,
+        "shift": 0
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Citrouilles",
+      "duration": 4,
+      "fade": 1,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff5a00",
+          "#7a00ff"
+        ],
+        "brightness": 80,
+        "shift": 0
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Citrouilles (bascule)",
+      "duration": 4,
+      "fade": 1,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff5a00",
+          "#7a00ff"
+        ],
+        "brightness": 80,
+        "shift": 1
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Citrouilles",
+      "duration": 4,
+      "fade": 1,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff5a00",
+          "#7a00ff"
+        ],
+        "brightness": 80,
+        "shift": 0
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Citrouilles (bascule)",
+      "duration": 4,
+      "fade": 1,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff5a00",
+          "#7a00ff"
+        ],
+        "brightness": 80,
+        "shift": 1
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Le ciel se charge",
+      "duration": 2,
+      "fade": 1,
+      "mode": "all",
+      "all": {
+        "on": true,
+        "color": "6500K",
+        "brightness": 5
+      },
+      "palette": {
+        "colors": [
+          "#ff0000",
+          "#00d84a",
+          "#2b50ff"
+        ],
+        "brightness": 80,
+        "shift": 0
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Éclair",
+      "duration": 1,
+      "fade": 0,
+      "mode": "all",
+      "all": {
+        "on": true,
+        "color": "6500K",
+        "brightness": 100
+      },
+      "palette": {
+        "colors": [
+          "#ff0000",
+          "#00d84a",
+          "#2b50ff"
+        ],
+        "brightness": 80,
+        "shift": 0
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Grondement",
+      "duration": 1,
+      "fade": 0,
+      "mode": "all",
+      "all": {
+        "on": true,
+        "color": "6500K",
+        "brightness": 5
+      },
+      "palette": {
+        "colors": [
+          "#ff0000",
+          "#00d84a",
+          "#2b50ff"
+        ],
+        "brightness": 80,
+        "shift": 0
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Éclair",
+      "duration": 0.5,
+      "fade": 0,
+      "mode": "all",
+      "all": {
+        "on": true,
+        "color": "6500K",
+        "brightness": 100
+      },
+      "palette": {
+        "colors": [
+          "#ff0000",
+          "#00d84a",
+          "#2b50ff"
+        ],
+        "brightness": 80,
+        "shift": 0
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Noir total",
+      "duration": 1.5,
+      "fade": 0,
+      "mode": "all",
+      "all": {
+        "on": false,
+        "color": "2700K",
+        "brightness": 80
+      },
+      "palette": {
+        "colors": [
+          "#ff0000",
+          "#00d84a",
+          "#2b50ff"
+        ],
+        "brightness": 80,
+        "shift": 0
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Cœur qui bat",
+      "duration": 2,
+      "fade": 0.2,
+      "mode": "all",
+      "all": {
+        "on": true,
+        "color": "#c00000",
+        "brightness": 100
+      },
+      "palette": {
+        "colors": [
+          "#ff0000",
+          "#00d84a",
+          "#2b50ff"
+        ],
+        "brightness": 80,
+        "shift": 0
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Cœur qui faiblit",
+      "duration": 2,
+      "fade": 0.8,
+      "mode": "all",
+      "all": {
+        "on": true,
+        "color": "#c00000",
+        "brightness": 20
+      },
+      "palette": {
+        "colors": [
+          "#ff0000",
+          "#00d84a",
+          "#2b50ff"
+        ],
+        "brightness": 80,
+        "shift": 0
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Cœur qui bat",
+      "duration": 2,
+      "fade": 0.2,
+      "mode": "all",
+      "all": {
+        "on": true,
+        "color": "#c00000",
+        "brightness": 100
+      },
+      "palette": {
+        "colors": [
+          "#ff0000",
+          "#00d84a",
+          "#2b50ff"
+        ],
+        "brightness": 80,
+        "shift": 0
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Cœur qui faiblit",
+      "duration": 2,
+      "fade": 0.8,
+      "mode": "all",
+      "all": {
+        "on": true,
+        "color": "#c00000",
+        "brightness": 20
+      },
+      "palette": {
+        "colors": [
+          "#ff0000",
+          "#00d84a",
+          "#2b50ff"
+        ],
+        "brightness": 80,
+        "shift": 0
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Potion de sorcière",
+      "duration": 2,
+      "fade": 0.5,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#39ff14",
+          "off",
+          "#7a00ff"
+        ],
+        "brightness": 85,
+        "shift": 0
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Potion de sorcière +1",
+      "duration": 2,
+      "fade": 0.5,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#39ff14",
+          "off",
+          "#7a00ff"
+        ],
+        "brightness": 85,
+        "shift": 1
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Potion de sorcière +2",
+      "duration": 2,
+      "fade": 0.5,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#39ff14",
+          "off",
+          "#7a00ff"
+        ],
+        "brightness": 85,
+        "shift": 2
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Potion de sorcière",
+      "duration": 2,
+      "fade": 0.5,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#39ff14",
+          "off",
+          "#7a00ff"
+        ],
+        "brightness": 85,
+        "shift": 0
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Les fantômes passent",
+      "duration": 2,
+      "fade": 0.3,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#cfe8ff",
+          "off",
+          "off"
+        ],
+        "brightness": 70,
+        "shift": 0
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Les fantômes passent +1",
+      "duration": 2,
+      "fade": 0.3,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#cfe8ff",
+          "off",
+          "off"
+        ],
+        "brightness": 70,
+        "shift": 1
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Les fantômes passent +2",
+      "duration": 2,
+      "fade": 0.3,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#cfe8ff",
+          "off",
+          "off"
+        ],
+        "brightness": 70,
+        "shift": 2
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Les fantômes passent",
+      "duration": 2,
+      "fade": 0.3,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#cfe8ff",
+          "off",
+          "off"
+        ],
+        "brightness": 70,
+        "shift": 0
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Feu de citrouille",
+      "duration": 2,
+      "fade": 1,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff5a00",
+          "#ff2a00",
+          "#ffb000"
+        ],
+        "brightness": 90,
+        "shift": 0
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Feu de citrouille +1",
+      "duration": 2,
+      "fade": 1,
+      "mode": "palette",
+      "palette": {
+        "colors": [
+          "#ff5a00",
+          "#ff2a00",
+          "#ffb000"
+        ],
+        "brightness": 90,
+        "shift": 1
+      },
+      "all": {
+        "on": true,
+        "color": "#ffffff",
+        "brightness": 80
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Dernier éclair",
+      "duration": 0.5,
+      "fade": 0,
+      "mode": "all",
+      "all": {
+        "on": true,
+        "color": "6500K",
+        "brightness": 100
+      },
+      "palette": {
+        "colors": [
+          "#ff0000",
+          "#00d84a",
+          "#2b50ff"
+        ],
+        "brightness": 80,
+        "shift": 0
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Noir",
+      "duration": 1.5,
+      "fade": 0,
+      "mode": "all",
+      "all": {
+        "on": false,
+        "color": "2700K",
+        "brightness": 80
+      },
+      "palette": {
+        "colors": [
+          "#ff0000",
+          "#00d84a",
+          "#2b50ff"
+        ],
+        "brightness": 80,
+        "shift": 0
+      },
+      "lamps": {}
+    },
+    {
+      "name": "Retour de la brume",
+      "duration": 4,
+      "fade": 3,
+      "mode": "all",
+      "all": {
+        "on": true,
+        "color": "#7a00ff",
+        "brightness": 35
+      },
+      "palette": {
+        "colors": [
+          "#ff0000",
+          "#00d84a",
+          "#2b50ff"
+        ],
+        "brightness": 80,
+        "shift": 0
+      },
+      "lamps": {}
+    }
+  ]
+}
