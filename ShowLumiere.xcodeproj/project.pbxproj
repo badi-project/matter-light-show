@@ -1,0 +1,508 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		00DFF48F2A2D2FEE6D83D047 = {
+			isa = PBXBuildFile;
+			fileRef = 07961B5F6D338126F1405E05;
+		};
+		2F3B19ACDFFAF2E65D201C26 = {
+			isa = PBXBuildFile;
+			fileRef = 954A324C72AC265B3FD820BA;
+		};
+		31C012C31023A0312C0932D5 = {
+			isa = PBXBuildFile;
+			fileRef = 1F22A23C5330798E63B97396;
+		};
+		5777BECECE70822953334002 = {
+			isa = PBXBuildFile;
+			fileRef = 4D1D9F941AAB98B846218C66;
+		};
+		61E2E7A61D2D8ECB122792A6 = {
+			isa = PBXBuildFile;
+			fileRef = BC4F9C2248A805E31EA937A1;
+		};
+		66585A78091861731723D6C2 = {
+			isa = PBXBuildFile;
+			fileRef = 69CB53749F163D7D8BCB74FF;
+		};
+		68345B519F628FEC7B018187 = {
+			isa = PBXBuildFile;
+			fileRef = D955A69C86AD1328784563F4;
+		};
+		9B5CAC7B4DA00DD9053BC5F1 = {
+			isa = PBXBuildFile;
+			fileRef = A8FEA0C9D104005C1200709C;
+		};
+		AEAD3D8EE1F3FD8B552B7D7A = {
+			isa = PBXBuildFile;
+			fileRef = EF39D4FF52988358E0B68208;
+		};
+		B4CE2B9371DCFBF274F9487F = {
+			isa = PBXBuildFile;
+			fileRef = 2947C7985B41400186606870;
+		};
+		BA9E507BFB2CEB265D29AA40 = {
+			isa = PBXBuildFile;
+			fileRef = F72E563D777A757B98151477;
+		};
+		C6B24EEF6374111F54E83D0A = {
+			isa = PBXBuildFile;
+			fileRef = F189D26CACE51F77A5A5847C;
+		};
+		DDDF24BEB70FBA698473C583 = {
+			isa = PBXBuildFile;
+			fileRef = 66AC1AC38D4F62EE14B2ED5F;
+		};
+		F2616CEB0AE33627EE5E74F1 = {
+			isa = PBXBuildFile;
+			fileRef = 7855C6318111E9FB537A75B5;
+		};
+		F8FAAA00E46CFB1C7E87B8C1 = {
+			isa = PBXBuildFile;
+			fileRef = E8625C89973F653F6BE685C5;
+		};
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		07961B5F6D338126F1405E05 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = AppDelegate.swift;
+			sourceTree = "<group>";
+		};
+		0FD0547BBFA75A99F3EEA0C5 = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.plist.entitlements;
+			path = Node.entitlements;
+			sourceTree = "<group>";
+		};
+		1F22A23C5330798E63B97396 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MigrationView.swift;
+			sourceTree = "<group>";
+		};
+		2947C7985B41400186606870 = {
+			isa = PBXFileReference;
+			lastKnownFileType = image.icns;
+			path = AppIcon.icns;
+			sourceTree = "<group>";
+		};
+		4A03999CCAD3C1F0CF12CAF5 = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.script.sh;
+			path = compiler.command;
+			sourceTree = "<group>";
+		};
+		4D1D9F941AAB98B846218C66 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MainWindow.swift;
+			sourceTree = "<group>";
+		};
+		55AB023BA9E74F1A3D03E31D = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.script.sh;
+			path = preparer.command;
+			sourceTree = "<group>";
+		};
+		59EF5491C213470E46AC6F01 = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.plist.xml;
+			path = Info.plist;
+			sourceTree = "<group>";
+		};
+		66AC1AC38D4F62EE14B2ED5F = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = ShowLumiereMain.swift;
+			sourceTree = "<group>";
+		};
+		69CB53749F163D7D8BCB74FF = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = Views.swift;
+			sourceTree = "<group>";
+		};
+		7855C6318111E9FB537A75B5 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = Support.swift;
+			sourceTree = "<group>";
+		};
+		8A96DB9A2C1B6F1B7F317185 = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.plist.entitlements;
+			path = ShowLumiere.entitlements;
+			sourceTree = "<group>";
+		};
+		954A324C72AC265B3FD820BA = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = Paths.swift;
+			sourceTree = "<group>";
+		};
+		A8FEA0C9D104005C1200709C = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = StatusMenu.swift;
+			sourceTree = "<group>";
+		};
+		BC4F9C2248A805E31EA937A1 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = Net.swift;
+			sourceTree = "<group>";
+		};
+		D44B237AD4EFF28F0101F98C = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.script.sh;
+			path = "embed-server.sh";
+			sourceTree = "<group>";
+		};
+		D955A69C86AD1328784563F4 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = ShowCreator.swift;
+			sourceTree = "<group>";
+		};
+		E3957F7AEED2ED9B95DCFFAA = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.application;
+			includeInIndex = 0;
+			path = "Show lumière.app";
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		E8625C89973F653F6BE685C5 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = WebController.swift;
+			sourceTree = "<group>";
+		};
+		EF39D4FF52988358E0B68208 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = ServerManager.swift;
+			sourceTree = "<group>";
+		};
+		F189D26CACE51F77A5A5847C = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = ServerInstaller.swift;
+			sourceTree = "<group>";
+		};
+		F72E563D777A757B98151477 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MigrationManager.swift;
+			sourceTree = "<group>";
+		};
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		295FDDB715192E5AFCBE9E20 = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		2DA31C6761F4C2182821FE8F = {
+			isa = PBXGroup;
+			children = (
+				E3957F7AEED2ED9B95DCFFAA,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A14B658B1C207926B42C8AE6 = {
+			isa = PBXGroup;
+			children = (
+				2947C7985B41400186606870,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		BE6D71795194CC91D2A4C7EA = {
+			isa = PBXGroup;
+			children = (
+				C8F52BE12849CB3B5F1AFF6C,
+				DE24465F16D50BCCCF1953FA,
+				CFC919EA02491ECFCB0176CE,
+				2DA31C6761F4C2182821FE8F,
+			);
+			sourceTree = "<group>";
+		};
+		C8F52BE12849CB3B5F1AFF6C = {
+			isa = PBXGroup;
+			children = (
+				07961B5F6D338126F1405E05,
+				4D1D9F941AAB98B846218C66,
+				F72E563D777A757B98151477,
+				1F22A23C5330798E63B97396,
+				BC4F9C2248A805E31EA937A1,
+				954A324C72AC265B3FD820BA,
+				F189D26CACE51F77A5A5847C,
+				EF39D4FF52988358E0B68208,
+				D955A69C86AD1328784563F4,
+				66AC1AC38D4F62EE14B2ED5F,
+				A8FEA0C9D104005C1200709C,
+				7855C6318111E9FB537A75B5,
+				69CB53749F163D7D8BCB74FF,
+				E8625C89973F653F6BE685C5,
+				A14B658B1C207926B42C8AE6,
+			);
+			path = ShowLumiere;
+			sourceTree = "<group>";
+		};
+		CFC919EA02491ECFCB0176CE = {
+			isa = PBXGroup;
+			children = (
+				D44B237AD4EFF28F0101F98C,
+				55AB023BA9E74F1A3D03E31D,
+				4A03999CCAD3C1F0CF12CAF5,
+			);
+			path = Scripts;
+			sourceTree = "<group>";
+		};
+		DE24465F16D50BCCCF1953FA = {
+			isa = PBXGroup;
+			children = (
+				59EF5491C213470E46AC6F01,
+				8A96DB9A2C1B6F1B7F317185,
+				0FD0547BBFA75A99F3EEA0C5,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2772DE8BFE770B2F320D3E03 = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 772632042AA97BB49B2D5E6B;
+			buildPhases = (
+				5002C9AFABD11C4E890AD6D7,
+				295FDDB715192E5AFCBE9E20,
+				B9EE0BB133B04D1DD5AC3EA9,
+				D21B28E9C607E2258E7FAB77,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ShowLumiere;
+			productName = ShowLumiere;
+			productReference = E3957F7AEED2ED9B95DCFFAA;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		614AC43BE509C0CA85D81ED9 = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					2772DE8BFE770B2F320D3E03 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+				};
+			};
+			buildConfigurationList = 3650A05FF4D67C95B31ACB78;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = fr;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				fr,
+				en,
+				Base,
+			);
+			mainGroup = BE6D71795194CC91D2A4C7EA;
+			productRefGroup = 2DA31C6761F4C2182821FE8F;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				2772DE8BFE770B2F320D3E03,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B9EE0BB133B04D1DD5AC3EA9 = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B4CE2B9371DCFBF274F9487F,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		D21B28E9C607E2258E7FAB77 = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Embarquer Node et le serveur";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/bin/bash \"${SRCROOT}/Scripts/embed-server.sh\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		5002C9AFABD11C4E890AD6D7 = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00DFF48F2A2D2FEE6D83D047,
+				5777BECECE70822953334002,
+				BA9E507BFB2CEB265D29AA40,
+				31C012C31023A0312C0932D5,
+				61E2E7A61D2D8ECB122792A6,
+				2F3B19ACDFFAF2E65D201C26,
+				C6B24EEF6374111F54E83D0A,
+				AEAD3D8EE1F3FD8B552B7D7A,
+				68345B519F628FEC7B018187,
+				DDDF24BEB70FBA698473C583,
+				9B5CAC7B4DA00DD9053BC5F1,
+				F2616CEB0AE33627EE5E74F1,
+				66585A78091861731723D6C2,
+				F8FAAA00E46CFB1C7E87B8C1,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		23B58C75FA07F7E3F8E8527C = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				CODE_SIGN_ENTITLEMENTS = Config/ShowLumiere.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Config/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 2.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = fr.showlumiere.mac;
+				PRODUCT_NAME = "Show lumière";
+				EXECUTABLE_NAME = ShowLumiere;
+				SWIFT_VERSION = 5.0;
+				ENABLE_DEBUG_DYLIB = NO;
+			};
+			name = Debug;
+		};
+		24AE9D714DA199EF0C73D283 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				SDKROOT = macosx;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		8BA666640B0970D6489F2708 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				CODE_SIGN_ENTITLEMENTS = Config/ShowLumiere.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Config/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 2.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = fr.showlumiere.mac;
+				PRODUCT_NAME = "Show lumière";
+				EXECUTABLE_NAME = ShowLumiere;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		CAC185F11DA1D2684EBAE9EA = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				SDKROOT = macosx;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3650A05FF4D67C95B31ACB78 = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				24AE9D714DA199EF0C73D283,
+				CAC185F11DA1D2684EBAE9EA,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		772632042AA97BB49B2D5E6B = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				23B58C75FA07F7E3F8E8527C,
+				8BA666640B0970D6489F2708,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 614AC43BE509C0CA85D81ED9;
+}
