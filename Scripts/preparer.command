@@ -50,7 +50,7 @@ fetch_node() {
   [ -n "$line" ] || return 1
   sum="${line%% *}"
   file="${line##* }"
-  echo "  Téléchargement de $file…"
+  echo "  Téléchargement de ${file}…"
   curl -fL --progress-bar "$base/$file" -o "$WORK/$file" || return 1
   got="$(shasum -a 256 "$WORK/$file" | awk '{print $1}')"
   if [ "$got" != "$sum" ]; then

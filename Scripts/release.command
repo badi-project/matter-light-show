@@ -19,6 +19,22 @@ say()   { printf '\n\033[1m▸ %s\033[0m\n' "$1"; }
 ok()    { printf '  \033[32m✓\033[0m %s\n' "$1"; }
 fail()  { printf '\n\033[31m✗ %s\033[0m\n' "$1"; pause; exit 1; }
 
+# Xcode installé mais « outils en ligne de commande » sélectionnés dans les réglages : on utilise quand même
+# Xcode, pour cette exécution seulement (rien n'est modifié dans le système, pas de mot de passe).
+if ! xcodebuild -version >/dev/null 2>&1; then
+  # Candidats : le Xcode actuellement ouvert, puis Spotlight, puis /Applications.
+  RUNNING_XC="$(ps -axo command= 2>/dev/null | sed -n 's#^\(.*\.app\)/Contents/MacOS/Xcode$#\1#p' | head -n 1)"
+  while IFS= read -r XC; do
+    [ -n "$XC" ] || continue
+    if [ -d "$XC/Contents/Developer" ]; then export DEVELOPER_DIR="$XC/Contents/Developer"; break; fi
+  done <<XCLIST
+$RUNNING_XC
+$(mdfind "kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'" 2>/dev/null)
+$(ls -d /Applications/Xcode*.app 2>/dev/null)
+XCLIST
+  [ -n "${DEVELOPER_DIR:-}" ] && printf '  Xcode utilisé : %s\n' "$DEVELOPER_DIR"
+fi
+
 say "Contrôles avant compilation"
 command -v xcodebuild >/dev/null 2>&1 || fail "Xcode est introuvable (xcodebuild)."
 [ -x "$ROOT/Vendor/node/node" ] && [ -d "$ROOT/Server/node_modules/@matter" ] || fail "Node ou les modules du serveur manquent. Lance d'abord « Scripts/preparer.command »."
@@ -44,6 +60,9 @@ xcodebuild \
   PROVISIONING_PROFILE_SPECIFIER="" \
   CODE_SIGNING_REQUIRED=YES \
   CODE_SIGNING_ALLOWED=YES \
+  GCC_GENERATE_DEBUGGING_SYMBOLS=NO \
+  DEBUG_INFORMATION_FORMAT=dwarf \
+  OTHER_LDFLAGS='$(inherited) -Wl,-S' \
   build
 STATUS=$?
 [ $STATUS -eq 0 ] || fail "La compilation a échoué (code $STATUS). Copie les dernières lignes ci-dessus et envoie-les moi."
@@ -75,6 +94,10 @@ if find "$APP" \( -name 'data' -o -name '.DS_Store' \) -print -quit | grep -q .;
   fail "L'app contient un dossier « data » ou un .DS_Store : de quoi fuiter des données. Regarde : find \"$APP\" -name data"
 fi
 ok "Aucune donnée dans l'app"
+if grep -rqaF "$HOME" "$APP" 2>/dev/null; then
+  fail "L'app contient le chemin de ton dossier personnel ($HOME) : il serait publié avec le zip. Cherche où : grep -rlaF \"$HOME\" \"$APP\""
+fi
+ok "Aucun chemin de ton dossier personnel dans l'app"
 
 say "Fabrication du zip"
 ZIP="$OUT/Show-lumiere-$VERSION.zip"

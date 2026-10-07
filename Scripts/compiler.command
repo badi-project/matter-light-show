@@ -8,6 +8,22 @@ ROOT="$(pwd)"
 
 pause() { echo; read -n 1 -s -r -p "Appuie sur une touche pour fermer cette fenêtre…"; echo; }
 
+# Xcode installé mais « outils en ligne de commande » sélectionnés dans les réglages : on utilise quand même
+# Xcode, pour cette exécution seulement (rien n'est modifié dans le système, pas de mot de passe).
+if ! xcodebuild -version >/dev/null 2>&1; then
+  # Candidats : le Xcode actuellement ouvert, puis Spotlight, puis /Applications.
+  RUNNING_XC="$(ps -axo command= 2>/dev/null | sed -n 's#^\(.*\.app\)/Contents/MacOS/Xcode$#\1#p' | head -n 1)"
+  while IFS= read -r XC; do
+    [ -n "$XC" ] || continue
+    if [ -d "$XC/Contents/Developer" ]; then export DEVELOPER_DIR="$XC/Contents/Developer"; break; fi
+  done <<XCLIST
+$RUNNING_XC
+$(mdfind "kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'" 2>/dev/null)
+$(ls -d /Applications/Xcode*.app 2>/dev/null)
+XCLIST
+  [ -n "${DEVELOPER_DIR:-}" ] && printf '  Xcode utilisé : %s\n' "$DEVELOPER_DIR"
+fi
+
 if [ ! -x "$ROOT/Vendor/node/node" ] || [ ! -d "$ROOT/Server/node_modules/@matter" ]; then
   echo "✗ Node ou les modules du serveur manquent. Lance d'abord « Scripts/preparer.command »."
   pause; exit 1
